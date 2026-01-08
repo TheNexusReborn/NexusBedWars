@@ -1,0 +1,9 @@
+main: com.thenexusreborn.bedwars.BedWars
+version: ${version}
+name: BedWars
+description: The BedWars plugin for The Nexus Reborn
+depend: [NexusCore, NexusMaps, ProtocolLib, WorldEdit]
+softdepend: [Vulcan, NexusHub]
+author: Firestar311
+commands:
+  
