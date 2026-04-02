@@ -15,7 +15,7 @@ public class GameTeam implements Keyable {
         AQUA(Color.AQUA, "&b", SMaterial.LIGHT_BLUE_WOOL, SMaterial.LIGHT_BLUE_TERRACOTTA, SMaterial.LIGHT_BLUE_STAINED_GLASS), 
         PINK(Color.FUCHSIA, "&d", SMaterial.PINK_WOOL, SMaterial.PINK_TERRACOTTA, SMaterial.PINK_STAINED_GLASS), 
         ORANGE(Color.ORANGE, "&6", SMaterial.ORANGE_WOOL, SMaterial.ORANGE_TERRACOTTA, SMaterial.ORANGE_STAINED_GLASS), 
-        PURPLE(Color.PURPLE, "&5", SMaterial.PURPLE_WOOL, SMaterial.PURPLE_TERRACOTTA, SMaterial.PURPLE_STAINED_GLASS);
+        WHITE(Color.WHITE, "&5", SMaterial.WHITE_WOOL, SMaterial.WHITE_TERRACOTTA, SMaterial.WHITE_STAINED_GLASS);
         
         private final Color dyeColor;
         private final String chatColor;
@@ -68,7 +68,7 @@ public class GameTeam implements Keyable {
     public static final RegistryObject<GameTeam> AQUA = REGISTERER.register("aqua", new GameTeam(GameTeam.TeamColor.AQUA));
     public static final RegistryObject<GameTeam> PINK = REGISTERER.register("pink", new GameTeam(GameTeam.TeamColor.PINK));
     public static final RegistryObject<GameTeam> ORANGE = REGISTERER.register("orange", new GameTeam(GameTeam.TeamColor.ORANGE));
-    public static final RegistryObject<GameTeam> PURPLE = REGISTERER.register("purple", new GameTeam(GameTeam.TeamColor.PURPLE));
+    public static final RegistryObject<GameTeam> WHITE = REGISTERER.register("white", new GameTeam(GameTeam.TeamColor.WHITE));
     
     static {
         REGISTRY.freeze();
