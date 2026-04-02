@@ -165,7 +165,7 @@ public class BedwarsCommand extends StarCommand<BedWars> {
                 this.invalidSubCommandMessage = getColors().colorLegacy("&cInvalid Subcommand");
                 this.noPermissionMessage = getColors().colorLegacy("&cYou do not have permission to use that command");
                 this.executor = (p, sender, label, args, flagResults) -> {
-                    GameTeam gameTeam = GameTeams.get(args[0]);
+                    GameTeam gameTeam = GameTeam.get(args[0]);
                     if (gameTeam == null) {
                         StarColors.coloredMessage(sender, "&cInvalid Team " + args[0]);
                         return true;
@@ -190,7 +190,7 @@ public class BedwarsCommand extends StarCommand<BedWars> {
                 this.completer = (p, sender, label, args, flagResults) -> {
                     List<String> completions = new ArrayList<>();
                     if (args.length == 1) {
-                        for (GameTeam gameTeam : GameTeams.REGISTRY) {
+                        for (GameTeam gameTeam : GameTeam.REGISTRY) {
                             completions.add(gameTeam.getName().toLowerCase());
                         }
                         
