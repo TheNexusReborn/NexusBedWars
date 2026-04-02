@@ -37,7 +37,7 @@ public class BedwarsCommand extends StarCommand<BedWars> {
         public static Completer<BedWars> completer = (p, sender, label, args, flagResults) -> {
             List<String> completions = new ArrayList<>();
             if (args.length == 1) {
-                for (Tool tool : Tools.REGISTRY) {
+                for (Tool tool : Tool.REGISTRY) {
                     completions.add(tool.getKey().toString().toLowerCase());
                 }
                 
@@ -54,7 +54,7 @@ public class BedwarsCommand extends StarCommand<BedWars> {
                 this.noPermissionMessage = getColors().colorLegacy("&cYou do not have permission to use that command");
                 
                 this.executor = (p, sender, label, args, flagResults) -> {
-                    Tool tool = Tools.REGISTRY.get(args[0]);
+                    Tool tool = Tool.REGISTRY.get(args[0]);
                     if (tool == null) {
                         StarColors.coloredMessage(sender, "&cInvalid tool");
                         return true;
@@ -62,12 +62,12 @@ public class BedwarsCommand extends StarCommand<BedWars> {
                     
                     Player player = (Player) sender;
                     
-                    if (Tools.hasTool(player, tool)) {
+                    if (tool.hasTool(player)) {
                         StarColors.coloredMessage(sender, "&cYou aready have that tool, use the upgrade command");
                         return true;
                     }
                     
-                    boolean result = Tools.upgrade(player, tool);
+                    boolean result = tool.upgrade(player);
                     if (result) {
                         StarColors.coloredMessage(sender, "&aSuccessfully retreived the tool &b" + tool.getKey());
                     } else {
@@ -86,7 +86,7 @@ public class BedwarsCommand extends StarCommand<BedWars> {
                 this.noPermissionMessage = getColors().colorLegacy("&cYou do not have permission to use that command");
                 
                 this.executor = (p, sender, label, args, flagResults) -> {
-                    Tool tool = Tools.REGISTRY.get(args[0]);
+                    Tool tool = Tool.REGISTRY.get(args[0]);
                     if (tool == null) {
                         StarColors.coloredMessage(sender, "&cInvalid tool");
                         return true;
@@ -94,12 +94,12 @@ public class BedwarsCommand extends StarCommand<BedWars> {
                     
                     Player player = (Player) sender;
                     
-                    if (!Tools.canUpgrade(player, tool)) {
+                    if (!tool.canUpgrade(player)) {
                         StarColors.coloredMessage(player, "&cYou cannot upgrade the tool &e" + tool.getKey() + " &canymore!");
                         return true;
                     }
                     
-                    boolean result = Tools.upgrade(player, tool);
+                    boolean result = tool.upgrade(player);
                     if (result) {
                         StarColors.coloredMessage(sender, "&aSuccessfully upgraded the tool &b" + tool.getKey());
                     } else {
@@ -119,7 +119,7 @@ public class BedwarsCommand extends StarCommand<BedWars> {
                 this.noPermissionMessage = getColors().colorLegacy("&cYou do not have permission to use that command");
                 
                 this.executor = (p, sender, label, args, flagResults) -> {
-                    Tool tool = Tools.REGISTRY.get(args[0]);
+                    Tool tool = Tool.REGISTRY.get(args[0]);
                     if (tool == null) {
                         StarColors.coloredMessage(sender, "&cInvalid tool");
                         return true;
@@ -127,17 +127,17 @@ public class BedwarsCommand extends StarCommand<BedWars> {
                     
                     Player player = (Player) sender;
                     
-                    if (!Tools.hasTool(player, tool)) {
+                    if (!tool.hasTool(player)) {
                         StarColors.coloredMessage(player, "&cYou do not have the tool &e" + tool.getKey() + "&c.");
                         return true;
                     }
                     
-                    if (!Tools.canDowngrade(player, tool)) {
+                    if (!tool.canDowngrade(player)) {
                         StarColors.coloredMessage(player, "&cYou cannot downgrade the tool &e" + tool.getKey() + " &canymore!");
                         return true;
                     }
                     
-                    boolean result = Tools.downgrade(player, tool);
+                    boolean result = tool.downgrade(player);
                     if (result) {
                         StarColors.coloredMessage(sender, "&aSuccessfully downgraded the tool &b" + tool.getKey());
                     } else {

@@ -14,7 +14,7 @@ public class BedWars extends NexusSpigotPlugin {
         
         getServer().getScheduler().runTaskTimer(this, () -> {
             for (Player player : getServer().getOnlinePlayers()) {
-                Tools.checkTools(player);
+                Tool.checkTools(player);
             }
         }, 1L, 20L);
     }
