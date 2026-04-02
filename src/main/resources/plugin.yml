@@ -6,4 +6,5 @@ depend: [NexusCore, NexusMaps, ProtocolLib, WorldEdit]
 softdepend: [Vulcan, NexusHub]
 author: Firestar311
 commands:
+  bedwars:
   

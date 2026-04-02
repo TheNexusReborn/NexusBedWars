@@ -1,0 +1,106 @@
+package com.thenexusreborn.bedwars;
+
+import com.stardevllc.smaterial.SMaterial;
+import com.stardevllc.starlib.objects.key.Key;
+import com.stardevllc.starlib.objects.key.Keyable;
+import org.bukkit.Color;
+
+public class GameTeam implements Keyable {
+    
+    public enum TeamColor {
+        RED(Color.RED, "&c", SMaterial.RED_WOOL, SMaterial.RED_TERRACOTTA, SMaterial.RED_STAINED_GLASS), 
+        BLUE(Color.BLUE, "&9", SMaterial.BLUE_WOOL, SMaterial.BLUE_TERRACOTTA, SMaterial.BLUE_STAINED_GLASS), 
+        GREEN(Color.GREEN, "&a", SMaterial.LIME_WOOL, SMaterial.LIME_TERRACOTTA, SMaterial.LIME_STAINED_GLASS), 
+        YELLOW(Color.YELLOW, "&e", SMaterial.YELLOW_WOOL, SMaterial.YELLOW_TERRACOTTA, SMaterial.YELLOW_STAINED_GLASS), 
+        AQUA(Color.AQUA, "&b", SMaterial.LIGHT_BLUE_WOOL, SMaterial.LIGHT_BLUE_TERRACOTTA, SMaterial.LIGHT_BLUE_STAINED_GLASS), 
+        PINK(Color.FUCHSIA, "&d", SMaterial.PINK_WOOL, SMaterial.PINK_TERRACOTTA, SMaterial.PINK_STAINED_GLASS), 
+        ORANGE(Color.ORANGE, "&6", SMaterial.ORANGE_WOOL, SMaterial.ORANGE_TERRACOTTA, SMaterial.ORANGE_STAINED_GLASS), 
+        PURPLE(Color.PURPLE, "&5", SMaterial.PURPLE_WOOL, SMaterial.PURPLE_TERRACOTTA, SMaterial.PURPLE_STAINED_GLASS);
+        
+        private final Color dyeColor;
+        private final String chatColor;
+        private final SMaterial wool;
+        private final SMaterial clay;
+        private final SMaterial glass;
+        
+        TeamColor(Color dyeColor, String chatColor, SMaterial wool, SMaterial clay, SMaterial glass) {
+            this.dyeColor = dyeColor;
+            this.chatColor = chatColor;
+            this.wool = wool;
+            this.clay = clay;
+            this.glass = glass;
+        }
+        
+        public SMaterial getWool() {
+            return wool;
+        }
+        
+        public SMaterial getClay() {
+            return clay;
+        }
+        
+        public SMaterial getGlass() {
+            return glass;
+        }
+        
+        public Color getDyeColor() {
+            return dyeColor;
+        }
+        
+        public String getChatColor() {
+            return chatColor;
+        }
+    }
+    
+    private Key key;
+    private final TeamColor teamColor;
+    private final String name;
+    
+    public GameTeam(TeamColor color) {
+        this.teamColor = color;
+        this.name = color.name();
+    }
+    
+    public TeamColor getTeamColor() {
+        return teamColor;
+    }
+    
+    public Color getDyeColor() {
+        return this.teamColor.getDyeColor();
+    }
+    
+    public String getChatColor() {
+        return this.teamColor.getChatColor();
+    }
+    
+    public String getName() {
+        return name;
+    }
+    
+    public SMaterial getWoolMaterial() {
+        return teamColor.getWool();
+    }
+    
+    public SMaterial getClayMaterial() {
+        return teamColor.getClay();
+    }
+    
+    public SMaterial getGlassMaterial() {
+        return teamColor.getGlass();
+    }
+    
+    @Override
+    public Key getKey() {
+        return key;
+    }
+    
+    @Override
+    public void setKey(Key key) {
+        this.key = key;
+    }
+    
+    @Override
+    public boolean supportsSettingKey() {
+        return true;
+    }
+}
