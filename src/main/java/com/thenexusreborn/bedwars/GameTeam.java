@@ -1,6 +1,6 @@
 package com.thenexusreborn.bedwars;
 
-import com.stardevllc.smaterial.SMaterial;
+import com.stardevllc.minecraft.smaterial.SMaterial;
 import com.stardevllc.starlib.objects.key.*;
 import com.stardevllc.starlib.registry.*;
 import org.bukkit.Color;

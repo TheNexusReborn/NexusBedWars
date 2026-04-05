@@ -1,13 +1,14 @@
 package com.thenexusreborn.bedwars;
 
-import com.stardevllc.itembuilder.common.ItemBuilder;
-import com.stardevllc.smaterial.SMaterial;
-import com.stardevllc.staritems.ItemBuilders;
+import com.stardevllc.minecraft.itembuilder.ItemBuilder;
+import com.stardevllc.minecraft.smaterial.SMaterial;
+import com.stardevllc.starcore.ItemBuilders;
 import com.stardevllc.starlib.objects.builder.IBuilder;
 import com.stardevllc.starlib.objects.key.*;
 import com.stardevllc.starlib.registry.*;
 import com.stardevllc.starlib.table.HashTable;
 import com.stardevllc.starlib.table.Table;
+import org.bukkit.Bukkit;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemFlag;
@@ -104,10 +105,19 @@ public class Tool implements Item {
     
     @Override
     public ItemStack getItemStack(Player player) {
+        if (player == null) {
+            return null;
+        }
+        
         if (!hasTool(player)) {
             upgrade(player);
         }
         return PLAYER_TOOLS.get(player, getKey()).currentItem;
+    }
+    
+    @Override
+    public ItemStack getItemStack(GamePlayer player) {
+        return getItemStack(Bukkit.getPlayer(player.getUniqueId()));
     }
     
     public boolean removeTool(Player player) {
