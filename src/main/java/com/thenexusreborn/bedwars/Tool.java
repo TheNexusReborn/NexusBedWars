@@ -18,8 +18,8 @@ import java.util.*;
 
 public class Tool implements Item {
     
-    public static final IRegistry<Tool> REGISTRY = HashRegistry.builder(Tool.class)
-            .withId(Keys.of("tools"))
+    public static final IRegistry<Tool> REGISTRY = HashRegistry.newBuilder(Tool.class)
+            .withKey(Keys.of("tools"))
             .withName("Tools")
             .allowFreezing()
             .build();

@@ -12,12 +12,12 @@ import com.stardevllc.starlib.registry.*;
 public final class Resource {
     public static final IRegistry<ItemEntry> REGISTRY = PluginRegistry.builder(ItemEntry.class)
             .withParent(StarGenerators.ITEMS)
-            .withId(Keys.of("resources"))
+            .withKey(Keys.of("resources"))
             .withName("Resources")
             .allowFreezing()
             .build();
     
-    private static final Registerer<ItemEntry> REGISTERER = PluginRegisterer.create(REGISTRY, BedWars.getPlugin(BedWars.class));
+    private static final Registerer<ItemEntry> REGISTERER = PluginRegisterer.create(REGISTRY, NexusBedWarsPlugin.getPlugin(NexusBedWarsPlugin.class));
     
     public static final RegistryObject<ItemEntry> IRON = REGISTERER.register("iron", new ItemEntry(ItemBuilders.of(SMaterial.IRON_INGOT), ItemEntry.Flag.PERSISTENT, ItemEntry.Flag.INVULNERABLE));
     public static final RegistryObject<ItemEntry> GOLD = REGISTERER.register("gold", new ItemEntry(ItemBuilders.of(SMaterial.GOLD_INGOT), ItemEntry.Flag.PERSISTENT, ItemEntry.Flag.INVULNERABLE));
