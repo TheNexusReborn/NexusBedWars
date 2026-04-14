@@ -1,0 +1,81 @@
+package com.thenexusreborn.bedwars;
+
+import com.stardevllc.starchat.context.ChatContext;
+import com.stardevllc.starlib.objects.key.Key;
+import com.thenexusreborn.api.player.NexusPlayer;
+import com.thenexusreborn.api.player.Rank;
+import com.thenexusreborn.api.server.InstanceServer;
+import com.thenexusreborn.api.server.VirtualServer;
+
+import java.util.HashMap;
+import java.util.Map;
+
+public class BWVirtualServer extends VirtualServer {
+    
+    private NexusBedWarsPlugin plugin;
+    
+    private Game game;
+    
+    private Map<Key, TeamInstance> teams = new HashMap<>();
+    
+    public BWVirtualServer(NexusBedWarsPlugin plugin, InstanceServer parent, String name) {
+        super(parent, name, "bedwars", 32);
+        this.plugin = plugin;
+    }
+    
+    public BWVirtualServer(NexusBedWarsPlugin plugin, String name) {
+        super(name, "bedwars", 32);
+        this.plugin = plugin;
+    }
+    
+    @Override
+    public void join(NexusPlayer player) {
+        player.setServer(this);
+        
+        BWPlayer bwPlayer = plugin.getPlayers().get(player.getUniqueId());
+        bwPlayer.setJoinTime(System.currentTimeMillis());
+        
+        GameTeam team = bwPlayer.getTeam();
+        if (team != null) {
+            TeamInstance teamInstance = this.teams.computeIfAbsent(team.getKey(), k -> new TeamInstance(team));
+            teamInstance.addPlayer(bwPlayer.getUniqueId());
+        }
+        
+        if (player.getRank().ordinal() <= Rank.MEDIA.ordinal()) {
+            if (!player.isNicked()) {
+                plugin.getNexusCore().getStaffChannel().sendMessage(new ChatContext(player.getTrueDisplayName() + " &7&l-> &6" + name.get()));
+            }
+        }
+        
+        this.players.add(player.getUniqueId());
+    }
+    
+    @Override
+    public void quit(NexusPlayer player) {
+        BWPlayer bwPlayer = plugin.getPlayers().get(player.getUniqueId());
+        bwPlayer.setJoinTime(0);
+        this.players.remove(player.getUniqueId());
+    }
+    
+    @Override
+    public void onStart() {
+        
+    }
+    
+    @Override
+    public void onStop() {
+        
+    }
+    
+    public Game getGame() {
+        return game;
+    }
+    
+    public void setGame(Game game) {
+        this.game = game;
+    }
+    
+    public Map<Key, TeamInstance> getTeams() {
+        return teams;
+    }
+}
