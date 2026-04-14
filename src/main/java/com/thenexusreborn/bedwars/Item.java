@@ -9,6 +9,8 @@ public interface Item extends Keyable {
     
     ItemStack getItemStack(Player player);
     
+    ItemStack getItemStack(GamePlayer player);
+    
     @Override
     default boolean supportsSettingKey() {
         return true;
