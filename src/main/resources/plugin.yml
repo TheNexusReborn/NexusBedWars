@@ -1,6 +1,6 @@
-main: com.thenexusreborn.bedwars.BedWars
+main: com.thenexusreborn.bedwars.NexusBedWarsPlugin
 version: ${version}
-name: BedWars
+name: NexusBedWars
 description: The BedWars plugin for The Nexus Reborn
 depend: [NexusCore, NexusMaps, ProtocolLib, WorldEdit, StarGenerators]
 softdepend: [Vulcan, NexusHub]
