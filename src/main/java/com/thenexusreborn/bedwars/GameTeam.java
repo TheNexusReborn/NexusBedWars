@@ -4,6 +4,9 @@ import com.stardevllc.minecraft.smaterial.SMaterial;
 import com.stardevllc.starlib.objects.key.*;
 import com.stardevllc.starlib.registry.*;
 import org.bukkit.Color;
+import org.bukkit.Material;
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 
 public class GameTeam implements Keyable {
     
@@ -15,7 +18,8 @@ public class GameTeam implements Keyable {
         AQUA(Color.AQUA, "&b", SMaterial.LIGHT_BLUE_WOOL, SMaterial.LIGHT_BLUE_TERRACOTTA, SMaterial.LIGHT_BLUE_STAINED_GLASS), 
         PINK(Color.FUCHSIA, "&d", SMaterial.PINK_WOOL, SMaterial.PINK_TERRACOTTA, SMaterial.PINK_STAINED_GLASS), 
         ORANGE(Color.ORANGE, "&6", SMaterial.ORANGE_WOOL, SMaterial.ORANGE_TERRACOTTA, SMaterial.ORANGE_STAINED_GLASS), 
-        WHITE(Color.WHITE, "&5", SMaterial.WHITE_WOOL, SMaterial.WHITE_TERRACOTTA, SMaterial.WHITE_STAINED_GLASS);
+        WHITE(Color.WHITE, "&5", SMaterial.WHITE_WOOL, SMaterial.WHITE_TERRACOTTA, SMaterial.WHITE_STAINED_GLASS), 
+        SPECATATOR(Color.GRAY, "&7", null, null, null);
         
         private final Color dyeColor;
         private final String chatColor;
@@ -52,11 +56,11 @@ public class GameTeam implements Keyable {
         }
     }
     
-    public static final IRegistry<GameTeam> REGISTRY = HashRegistry.builder(GameTeam.class)
+    public static final IRegistry<GameTeam> REGISTRY = HashRegistry.newBuilder(GameTeam.class)
             .checkPartialInGet()
             .allowFreezing()
             .withName("Teams")
-            .withId(Keys.of("teams"))
+            .withKey(Keys.of("teams"))
             .build();
     
     private static final Registerer<GameTeam> REGISTERER = Registerer.create(REGISTRY);
@@ -69,6 +73,7 @@ public class GameTeam implements Keyable {
     public static final RegistryObject<GameTeam> PINK = REGISTERER.register("pink", new GameTeam(GameTeam.TeamColor.PINK));
     public static final RegistryObject<GameTeam> ORANGE = REGISTERER.register("orange", new GameTeam(GameTeam.TeamColor.ORANGE));
     public static final RegistryObject<GameTeam> WHITE = REGISTERER.register("white", new GameTeam(GameTeam.TeamColor.WHITE));
+    public static final RegistryObject<GameTeam> SPECATORS = REGISTERER.register("spectators", new GameTeam(TeamColor.SPECATATOR));
     
     static {
         REGISTRY.freeze();
@@ -113,12 +118,51 @@ public class GameTeam implements Keyable {
         return name;
     }
     
+    public boolean giveWool(Player player, int amount) {
+        if (getWoolMaterial() != null) {
+            ItemStack itemStack = getWoolMaterial().parseItem();
+            if (itemStack != null && itemStack.getType() != Material.AIR) {
+                itemStack.setAmount(16);
+                player.getInventory().addItem(itemStack);
+                return true;
+            }
+        }
+        
+        return false;
+    }
+    
     public SMaterial getWoolMaterial() {
         return teamColor.getWool();
     }
     
+    public boolean giveClay(Player player, int amount) {
+        if (getClayMaterial() != null) {
+            ItemStack itemStack = getClayMaterial().parseItem();
+            if (itemStack != null && itemStack.getType() != Material.AIR) {
+                itemStack.setAmount(16);
+                player.getInventory().addItem(itemStack);
+                return true;
+            }
+        }
+        
+        return false;
+    }
+    
     public SMaterial getClayMaterial() {
         return teamColor.getClay();
+    }
+    
+    public boolean giveGlass(Player player, int amount) {
+        if (getGlassMaterial() != null) {
+            ItemStack itemStack = getGlassMaterial().parseItem();
+            if (itemStack != null && itemStack.getType() != Material.AIR) {
+                itemStack.setAmount(16);
+                player.getInventory().addItem(itemStack);
+                return true;
+            }
+        }
+        
+        return false;
     }
     
     public SMaterial getGlassMaterial() {
