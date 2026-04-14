@@ -22,8 +22,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 @SuppressWarnings("DuplicatedCode")
-public class BedwarsCommand extends StarCommand<BedWars> {
-    public BedwarsCommand(BedWars plugin) {
+public class BedwarsCommand extends StarCommand<NexusBedWarsPlugin> {
+    public BedwarsCommand(NexusBedWarsPlugin plugin) {
         super(plugin, "bedwars", "Main Bedwars Command", "nexusbedwars.command", "bw");
         this.invalidSubCommandMessage = getColors().colorLegacy("&cInvalid Subcommand");
         this.noPermissionMessage = getColors().colorLegacy("&cYou do not have permission to use that command");
@@ -32,20 +32,20 @@ public class BedwarsCommand extends StarCommand<BedWars> {
         this.subCommands.add(new GeneratorsCmd());
     }
     
-    private class GeneratorsCmd extends SubCommand<BedWars> {
+    private class GeneratorsCmd extends SubCommand<NexusBedWarsPlugin> {
         // The commands will work with most BedwarsGenerators, I just don't have that in place yet
         // But these registries will exist to help separate them from the game based generators
         // The startall and stopall commands will only work on generators created by the command
         // The upgrade command will work on all (when the full systems are in place)
         
         private final IRegistry<BedwarsGenerator> REGISTRY = PluginRegistry.builder(BedwarsGenerator.class)
-                .withId(Keys.of("bedwarscmd_gens"))
+                .withKey(Keys.of("bedwarscmd_gens"))
                 .withName("Bedwars Command Generators")
                 .withParent(StarGenerators.ITEM_GENERATORS)
                 .build();
         
         private final IRegistry<IslandForge> FORGE_REGISTRY = PluginRegistry.builder(IslandForge.class)
-                .withId(Keys.of("bedwarscmd_forges"))
+                .withKey(Keys.of("bedwarscmd_forges"))
                 .withName("Bedwars Cmd Forges")
                 .withParent(REGISTRY)
                 .build();
@@ -53,7 +53,7 @@ public class BedwarsCommand extends StarCommand<BedWars> {
         private final Registerer<IslandForge> FORGE_REGISTERER = PluginRegisterer.create(FORGE_REGISTRY, BedwarsCommand.this.plugin);
         
         private final IRegistry<DiamondGenerator> DIAMOND_REGISTRY = PluginRegistry.builder(DiamondGenerator.class)
-                .withId(Keys.of("bedwarscmd_diamond"))
+                .withKey(Keys.of("bedwarscmd_diamond"))
                 .withName("Bedwars Cmd Diamond Gens")
                 .withParent(REGISTRY)
                 .build();
@@ -61,7 +61,7 @@ public class BedwarsCommand extends StarCommand<BedWars> {
         private final Registerer<DiamondGenerator> DIAMOND_REGISTERER = PluginRegisterer.create(DIAMOND_REGISTRY, BedwarsCommand.this.plugin);
         
         private final IRegistry<EmeraldGenerator> EMERALD_REGISTRY = PluginRegistry.builder(EmeraldGenerator.class)
-                .withId(Keys.of("bedwarscmd_emerald"))
+                .withKey(Keys.of("bedwarscmd_emerald"))
                 .withName("Bedwars Cmd Emerald Gens")
                 .withParent(REGISTRY)
                 .build();
@@ -80,7 +80,7 @@ public class BedwarsCommand extends StarCommand<BedWars> {
             //create <type> <args based on type> - The types will be discrete sub commands as they are preset in the plugin
         }
         
-        private final class CreateCmd extends SubCommand<BedWars> {
+        private final class CreateCmd extends SubCommand<NexusBedWarsPlugin> {
             public CreateCmd() {
                 super(GeneratorsCmd.this.plugin, GeneratorsCmd.this, 1, "create", "Create a generator", "nexusbedwars.command.generators.create");
                 this.subCommands.add(new CreateDiamond());
@@ -88,7 +88,7 @@ public class BedwarsCommand extends StarCommand<BedWars> {
                 this.subCommands.add(new CreateForge());
             }
             
-            private abstract sealed class SingleResource extends SubCommand<BedWars> {
+            private abstract sealed class SingleResource extends SubCommand<NexusBedWarsPlugin> {
                 public SingleResource(String name, IRegistry<? extends BedwarsGenerator> registry) {
                     super(CreateCmd.this.plugin, CreateCmd.this, 2, name, "Create a " + StringHelper.titlize(name) + " generator", "nexusbedwars.command.generators.create." + name);
                     
@@ -176,7 +176,7 @@ public class BedwarsCommand extends StarCommand<BedWars> {
                 }
             }
             
-            private final class CreateForge extends SubCommand<BedWars> {
+            private final class CreateForge extends SubCommand<NexusBedWarsPlugin> {
                 public CreateForge() {
                     super(CreateCmd.this.plugin, CreateCmd.this, 2, "forge", "Create a forge generator", "nexusbedwars.command.generators.create.forge");
                     
@@ -214,7 +214,7 @@ public class BedwarsCommand extends StarCommand<BedWars> {
             }
         } 
         
-        Completer<BedWars> generatorCompleter = (plugin, sender, label, args, flagResults) -> {
+        Completer<NexusBedWarsPlugin> generatorCompleter = (plugin, sender, label, args, flagResults) -> {
             List<String> completions = new ArrayList<>();
             if (args.length == 1) {
                 for (Key key : REGISTRY.keySet()) {
@@ -231,7 +231,7 @@ public class BedwarsCommand extends StarCommand<BedWars> {
             return completions;
         };
         
-        private class StopAllCmd extends SubCommand<BedWars> {
+        private class StopAllCmd extends SubCommand<NexusBedWarsPlugin> {
             public StopAllCmd() {
                 super(BedwarsCommand.this.plugin, GeneratorsCmd.this, 1, "stopall", "Stops all generators", "nexusbedwars.command.generators.stopall");
                 
@@ -256,7 +256,7 @@ public class BedwarsCommand extends StarCommand<BedWars> {
             }
         }
         
-        private class StartAllCmd extends SubCommand<BedWars> {
+        private class StartAllCmd extends SubCommand<NexusBedWarsPlugin> {
             public StartAllCmd() {
                 super(BedwarsCommand.this.plugin, GeneratorsCmd.this, 1, "startall", "Starts all generators", "nexusbedwars.command.generators.startall");
                 
@@ -283,7 +283,7 @@ public class BedwarsCommand extends StarCommand<BedWars> {
             }
         }
         
-        private class StartCmd extends SubCommand<BedWars> {
+        private class StartCmd extends SubCommand<NexusBedWarsPlugin> {
             public StartCmd() {
                 super(BedwarsCommand.this.plugin, GeneratorsCmd.this, 1, "start", "Starts a generator", "nexusbedwars.command.generators.start");
                 
@@ -320,7 +320,7 @@ public class BedwarsCommand extends StarCommand<BedWars> {
             }
         }
         
-        private class StopCmd extends SubCommand<BedWars> {
+        private class StopCmd extends SubCommand<NexusBedWarsPlugin> {
             public StopCmd() {
                 super(BedwarsCommand.this.plugin, GeneratorsCmd.this, 1, "stop", "Stops a generator", "nexusbedwars.command.generators.stop");
                 
@@ -356,7 +356,7 @@ public class BedwarsCommand extends StarCommand<BedWars> {
             }
         }
         
-        private class UpgradeCmd extends SubCommand<BedWars> {
+        private class UpgradeCmd extends SubCommand<NexusBedWarsPlugin> {
             public UpgradeCmd() {
                 super(BedwarsCommand.this.plugin, GeneratorsCmd.this, 1, "upgrade", "Upgrades a generator", "nexusbedwars.command.generators.upgrade");
                 
@@ -397,7 +397,7 @@ public class BedwarsCommand extends StarCommand<BedWars> {
         }
     }
     
-    private class ToolsCmd extends SubCommand<BedWars> {
+    private class ToolsCmd extends SubCommand<NexusBedWarsPlugin> {
         public ToolsCmd() {
             super(BedwarsCommand.this.plugin, BedwarsCommand.this, 0, "tools", "Manage the tools", "nexusbedwars.command.tools");
 //            this.invalidSubCommandMessage = getColors().colorLegacy("&cInvalid Subcommand");
@@ -408,7 +408,7 @@ public class BedwarsCommand extends StarCommand<BedWars> {
             this.subCommands.add(new DowngradeCmd());
         }
         
-        public static Completer<BedWars> completer = (p, sender, label, args, flagResults) -> {
+        public static Completer<NexusBedWarsPlugin> completer = (p, sender, label, args, flagResults) -> {
             List<String> completions = new ArrayList<>();
             if (args.length == 1) {
                 for (Tool tool : Tool.REGISTRY) {
@@ -421,7 +421,7 @@ public class BedwarsCommand extends StarCommand<BedWars> {
             return completions;
         };
         
-        private class GetCmd extends SubCommand<BedWars> {
+        private class GetCmd extends SubCommand<NexusBedWarsPlugin> {
             public GetCmd() {
                 super(BedwarsCommand.this.plugin, ToolsCmd.this, 1, "get", "Get a tool", "nexusbedwars.command.tools.get");
 //                this.invalidSubCommandMessage = getColors().colorLegacy("&cInvalid Subcommand");
@@ -454,7 +454,7 @@ public class BedwarsCommand extends StarCommand<BedWars> {
             }
         }
         
-        private class UpgradeCmd extends SubCommand<BedWars> {
+        private class UpgradeCmd extends SubCommand<NexusBedWarsPlugin> {
             public UpgradeCmd() {
                 super(BedwarsCommand.this.plugin, ToolsCmd.this, 1, "upgrade", "Upgrade a tool", "nexusbedwars.command.tools.upgrade");
 //                this.invalidSubCommandMessage = getColors().colorLegacy("&cInvalid Subcommand");
@@ -487,7 +487,7 @@ public class BedwarsCommand extends StarCommand<BedWars> {
             }
         }
         
-        private class DowngradeCmd extends SubCommand<BedWars> {
+        private class DowngradeCmd extends SubCommand<NexusBedWarsPlugin> {
             public DowngradeCmd() {
                 super(BedwarsCommand.this.plugin, ToolsCmd.this, 1, "downgrade", "Downgrade a tool", "nexusbedwars.command.tools.downgrade");
 //                this.invalidSubCommandMessage = getColors().colorLegacy("&cInvalid Subcommand");
@@ -526,7 +526,7 @@ public class BedwarsCommand extends StarCommand<BedWars> {
         }
     }
     
-    private class TeamsCmd extends SubCommand<BedWars> {
+    private class TeamsCmd extends SubCommand<NexusBedWarsPlugin> {
         public TeamsCmd() {
             super(BedwarsCommand.this.plugin, BedwarsCommand.this, 0, "teams", "Manage the teams", "nexusbedwars.command.teams");
             this.subCommands.add(new TestCmd(plugin));
@@ -534,8 +534,8 @@ public class BedwarsCommand extends StarCommand<BedWars> {
 //            this.noPermissionMessage = getColors().colorLegacy("&cYou do not have permission to use that command");
         }
         
-        private class TestCmd extends SubCommand<BedWars> {
-            public TestCmd(BedWars plugin) {
+        private class TestCmd extends SubCommand<NexusBedWarsPlugin> {
+            public TestCmd(NexusBedWarsPlugin plugin) {
                 super(BedwarsCommand.this.plugin, TeamsCmd.this, 1, "test", "Test team settings", "nexusbedwars.command.teams.test");
                 this.invalidSubCommandMessage = getColors().colorLegacy("&cInvalid Subcommand");
                 this.noPermissionMessage = getColors().colorLegacy("&cYou do not have permission to use that command");
