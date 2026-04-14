@@ -4,10 +4,9 @@ import com.stardevllc.minecraft.Position;
 import com.stardevllc.minecraft.StarColors;
 import com.stardevllc.minecraft.command.StarCommand;
 import com.stardevllc.minecraft.command.SubCommand;
-import com.stardevllc.minecraft.v1_8.LeatherArmorBuilder;
 import com.stardevllc.minecraft.registry.*;
 import com.stardevllc.minecraft.smaterial.ArmorSlot;
-import com.stardevllc.stargenerators.StarGenerators;
+import com.stardevllc.minecraft.v1_8.LeatherArmorBuilder;
 import com.stardevllc.starcore.ItemBuilders;
 import com.stardevllc.starlib.helper.StringHelper;
 import com.stardevllc.starlib.objects.key.Key;
@@ -41,7 +40,7 @@ public class BedwarsCommand extends StarCommand<NexusBedWarsPlugin> {
         private final IRegistry<BedwarsGenerator> REGISTRY = PluginRegistry.builder(BedwarsGenerator.class)
                 .withKey(Keys.of("bedwarscmd_gens"))
                 .withName("Bedwars Command Generators")
-                .withParent(StarGenerators.ITEM_GENERATORS)
+                .withParent(NexusBedWarsPlugin.GENERATORS)
                 .build();
         
         private final IRegistry<IslandForge> FORGE_REGISTRY = PluginRegistry.builder(IslandForge.class)
@@ -74,6 +73,7 @@ public class BedwarsCommand extends StarCommand<NexusBedWarsPlugin> {
             this.subCommands.add(new StartCmd());
             this.subCommands.add(new StopCmd());
             this.subCommands.add(new UpgradeCmd());
+            //upgradeall command
             this.subCommands.add(new StartAllCmd());
             this.subCommands.add(new StopAllCmd());
             this.subCommands.add(new CreateCmd());

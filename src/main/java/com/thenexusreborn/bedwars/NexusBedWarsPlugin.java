@@ -1,9 +1,12 @@
 package com.thenexusreborn.bedwars;
 
+import com.stardevllc.minecraft.registry.PluginRegistry;
+import com.stardevllc.stargenerators.StarGenerators;
 import com.stardevllc.starlib.collections.listmap.ArrayListMap;
 import com.stardevllc.starlib.collections.listmap.ListMap;
 import com.stardevllc.starlib.objects.key.Key;
 import com.stardevllc.starlib.objects.key.Keys;
+import com.stardevllc.starlib.registry.IRegistry;
 import com.stardevllc.starlib.repository.*;
 import com.thenexusreborn.api.util.NetworkType;
 import com.thenexusreborn.nexuscore.NexusCore;
@@ -24,6 +27,12 @@ public class NexusBedWarsPlugin extends NexusSpigotPlugin implements Listener {
     
     private final Map<Key, Game> games = new HashMap<>();
     private final ListMap<Key, TeamInstance> teamInstances = new ArrayListMap<>();
+    
+    public static final IRegistry<BedwarsGenerator> GENERATORS = PluginRegistry.builder(BedwarsGenerator.class)
+            .withKey(Keys.of("bedwars:generators"))
+            .withName("Bedwars Generators")
+            .withParent(StarGenerators.ITEM_GENERATORS)
+            .build();
     
     private final IRepository<UUID, BWPlayer> players = HashRepository.newBuilder(UUID.class, BWPlayer.class)
             .withKey(Keys.of("bw:players"))
@@ -61,6 +70,12 @@ public class NexusBedWarsPlugin extends NexusSpigotPlugin implements Listener {
                 Tool.checkTools(player);
             }
         }, 1L, 20L);
+        
+        getServer().getScheduler().runTaskTimer(this, () -> {
+            for (BedwarsGenerator generator : GENERATORS) {
+                generator.updateHologram();
+            }
+        }, 1L, 1L);
         
         getServer().getPluginManager().registerEvents(this, this);
         
