@@ -1,6 +1,13 @@
 package com.thenexusreborn.bedwars;
 
 import com.stardevllc.minecraft.Position;
+import com.stardevllc.starlib.helper.RomanNumerals;
+import com.stardevllc.starlib.time.TimeUnit;
+import eu.decentsoftware.holograms.api.DHAPI;
+import eu.decentsoftware.holograms.api.holograms.Hologram;
+import org.bukkit.Location;
+
+import java.util.List;
 
 public class DiamondGenerator extends BedwarsGenerator {
     
@@ -53,6 +60,25 @@ public class DiamondGenerator extends BedwarsGenerator {
         }
         
         return false;
+    }
+    
+    @Override
+    protected Hologram createHologram() {
+        if (this.hologram != null) {
+            return hologram;
+        }
+        Position position = getSpawnPosition(Resource.DIAMOND.getKey());
+        Location location = new Location(world, position.getBlockX() + 0.5, position.getBlockY() + 3, position.getBlockZ() + 0.5);
+        return this.hologram = DHAPI.createHologram("diamondgenerator_" + this.getKey().toString().replace(":", "_"), location, List.of("", "", ""));
+    }
+    
+    @Override
+    protected List<String> getHologramLines() {
+        return List.of(
+                "&bDiamond",
+                "&eTier &c" + RomanNumerals.decimalToRoman(getTier().getNumber()),
+                "&eNext Spawn in &c" + ((long) TimeUnit.MILLISECONDS.toSeconds(getNextSpawn(Resource.DIAMOND.get()))) + " &eseconds"
+        );
     }
     
     @Override
