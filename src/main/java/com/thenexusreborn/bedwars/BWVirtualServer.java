@@ -1,6 +1,8 @@
 package com.thenexusreborn.bedwars;
 
+import com.stardevllc.starchat.StarChat;
 import com.stardevllc.starchat.context.ChatContext;
+import com.stardevllc.starchat.rooms.ChatRoom;
 import com.stardevllc.starlib.objects.key.Key;
 import com.thenexusreborn.api.player.NexusPlayer;
 import com.thenexusreborn.api.player.Rank;
@@ -16,7 +18,7 @@ public class BWVirtualServer extends VirtualServer {
     
     private Game game;
     
-    private Map<Key, TeamInstance> teams = new HashMap<>();
+    private final Map<Key, TeamInstance> teams = new HashMap<>();
     
     public BWVirtualServer(NexusBedWarsPlugin plugin, InstanceServer parent, String name) {
         super(parent, name, "bedwars", 32);
@@ -48,6 +50,20 @@ public class BWVirtualServer extends VirtualServer {
         }
         
         this.players.add(player.getUniqueId());
+    }
+    
+    public TeamInstance getTeamInstance(GameTeam gameTeam) {
+        if (this.teams.containsKey(gameTeam.getKey())) {
+            return this.teams.get(gameTeam.getKey());
+        }
+        
+        TeamInstance teamInstance = new TeamInstance(gameTeam);
+        this.teams.put(gameTeam.getKey(), teamInstance);
+        
+        ChatRoom teamRoom = new GameTeamChatroom(plugin, this, gameTeam);
+        teamInstance.setChatRoom(teamRoom);
+        StarChat.getInstance().getRoomRegistry().register(teamRoom.getName(), teamRoom);
+        return teamInstance;
     }
     
     @Override
