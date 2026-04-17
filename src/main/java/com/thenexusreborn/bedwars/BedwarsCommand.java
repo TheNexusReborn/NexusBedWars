@@ -219,7 +219,7 @@ public class BedwarsCommand extends StarCommand<NexusBedWarsPlugin> {
         Completer<NexusBedWarsPlugin> generatorCompleter = (plugin, sender, label, args, flagResults) -> {
             List<String> completions = new ArrayList<>();
             if (args.length == 1) {
-                for (Key key : REGISTRY.keySet()) {
+                for (Key key : NexusBedWarsPlugin.GENERATORS.keySet()) {
                     if (key instanceof PluginKey pluginKey) {
                         completions.add(pluginKey.getKey());
                     } else {
@@ -298,7 +298,7 @@ public class BedwarsCommand extends StarCommand<NexusBedWarsPlugin> {
                     Player player = (Player) sender;
                     
                     PluginKey key = PluginKey.of(plugin, args[0]);
-                    BedwarsGenerator generator = REGISTRY.get(key);
+                    BedwarsGenerator generator = NexusBedWarsPlugin.GENERATORS.get(key);
                     if (generator == null) {
                         getColors().coloredLegacy(sender, "&cInvalid generator id &e" + args[0] + "&c.");
                         return true;
@@ -333,7 +333,7 @@ public class BedwarsCommand extends StarCommand<NexusBedWarsPlugin> {
                     }
                     
                     PluginKey key = PluginKey.of(plugin, args[0]);
-                    BedwarsGenerator generator = REGISTRY.get(key);
+                    BedwarsGenerator generator = NexusBedWarsPlugin.GENERATORS.get(key);
                     if (generator == null) {
                         getColors().coloredLegacy(sender, "&cInvalid generator id &e" + args[0] + "&c.");
                         return true;
@@ -369,7 +369,7 @@ public class BedwarsCommand extends StarCommand<NexusBedWarsPlugin> {
                     }
                     
                     PluginKey key = PluginKey.of(plugin, args[0]);
-                    BedwarsGenerator generator = REGISTRY.get(key);
+                    BedwarsGenerator generator = NexusBedWarsPlugin.GENERATORS.get(key);
                     if (generator == null) {
                         getColors().coloredLegacy(sender, "&cInvalid generator id &e" + args[0] + "&c.");
                         return true;
