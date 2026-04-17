@@ -112,7 +112,7 @@ public class Tool implements Item {
         if (!hasTool(player)) {
             upgrade(player);
         }
-        return PLAYER_TOOLS.get(player, getKey()).currentItem;
+        return PLAYER_TOOLS.get(player.getUniqueId(), getKey()).currentItem;
     }
     
     @Override
