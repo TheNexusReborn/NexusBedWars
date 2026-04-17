@@ -8,9 +8,9 @@ import com.thenexusreborn.api.player.NexusPlayer;
 import com.thenexusreborn.api.player.Rank;
 import com.thenexusreborn.api.server.InstanceServer;
 import com.thenexusreborn.api.server.VirtualServer;
+import org.bukkit.entity.Player;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class BWVirtualServer extends VirtualServer {
     
@@ -73,6 +73,20 @@ public class BWVirtualServer extends VirtualServer {
         teamInstance.setChatRoom(teamRoom);
         StarChat.getInstance().getRoomRegistry().register(teamRoom.getName(), teamRoom);
         return teamInstance;
+    }
+    
+    public TeamInstance getTeamInstance(UUID uniqueId) {
+        for (TeamInstance teamInstance : this.teams.values()) {
+            if (teamInstance.getPlayers().contains(uniqueId)) {
+                return teamInstance;
+            }
+        }
+        
+        return null;
+    }
+    
+    public TeamInstance getTeamInstance(Player player) {
+        return getTeamInstance(player.getUniqueId());
     }
     
     @Override
