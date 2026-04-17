@@ -1,8 +1,42 @@
 package com.thenexusreborn.bedwars;
 
 import com.stardevllc.minecraft.Position;
+import com.stardevllc.stargenerators.model.listener.ItemPickupListener;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.Player;
 
 public class IslandForge extends BedwarsGenerator {
+    
+    /**
+     * Responsible for handling duping items NOT based on a teams
+     */
+    public static final ItemPickupListener PICKUP_LISTENER = (entity, item) -> {
+        if (!(entity instanceof Player)) {
+            return;
+        }
+        
+        if (item.entry().getKey().equals(Resource.EMERALD.getKey())) {
+            return;
+        }
+        
+        Cuboid region = item.generator().getRegion();
+        
+        if (region == null) {
+            return;
+        }
+        
+        for (Entity cEntity : item.item().getLocation().getChunk().getEntities()) {
+            if (cEntity instanceof Player player) {
+                if (cEntity == entity) {
+                    continue;
+                }
+                
+                if (region.contains(player)) {
+                    player.getInventory().addItem(item.entry().createItemStack(false));
+                }
+            }
+        }
+    };
     
     private record ResourceInfo(long cooldown, int maxItems, int stackSize) {}
     
@@ -67,6 +101,20 @@ public class IslandForge extends BedwarsGenerator {
         addEntry(Resource.IRON.get(), spawnPos, this.tier.getIronCooldown(), this.tier.getIronMaxItems(), this.tier.getIronStackSize());
         addEntry(Resource.GOLD.get(), spawnPos, this.tier.getGoldCooldown(), this.tier.getGoldMaxItems(), this.tier.getGoldStackSize());
         addEntry(Resource.EMERALD.get(), spawnPos, this.tier.getEmeraldCooldown(), this.tier.getEmeraldMaxItems(), this.tier.getEmeraldStackSize());
+        addPickupListener(PICKUP_LISTENER);
+    }
+    
+    public void addPickupListener(ItemPickupListener listener) {
+        addPickupListener(Resource.IRON.get(), listener);
+        addPickupListener(Resource.GOLD.get(), listener);
+    }
+    
+    public GameTeam getTeam() {
+        return team;
+    }
+    
+    public void setTeam(GameTeam team) {
+        this.team = team;
     }
     
     @Override
