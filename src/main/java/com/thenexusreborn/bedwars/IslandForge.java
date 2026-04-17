@@ -1,5 +1,6 @@
 package com.thenexusreborn.bedwars;
 
+import com.stardevllc.minecraft.Cuboid;
 import com.stardevllc.minecraft.Position;
 import com.stardevllc.stargenerators.model.listener.ItemPickupListener;
 import org.bukkit.entity.Entity;
@@ -93,6 +94,11 @@ public class IslandForge extends BedwarsGenerator {
     }
     
     private Tier tier;
+    private GameTeam team;
+    
+    public IslandForge(String name, Position position) {
+        this(name, position, position, position);
+    }
     
     public IslandForge(String name, Position boundsMin, Position boundsMax, Position spawnPos) {
         super(name, boundsMin != null ? boundsMin : spawnPos, boundsMax != null ? boundsMax : spawnPos);
