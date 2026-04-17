@@ -19,6 +19,7 @@ public class BWVirtualServer extends VirtualServer {
     private Game game;
     
     private final Map<Key, TeamInstance> teams = new HashMap<>();
+    private TeamMode teamMode = TeamMode.SOLO;
     
     public BWVirtualServer(NexusBedWarsPlugin plugin, InstanceServer parent, String name) {
         super(parent, name, "bedwars", 32);
@@ -28,6 +29,14 @@ public class BWVirtualServer extends VirtualServer {
     public BWVirtualServer(NexusBedWarsPlugin plugin, String name) {
         super(name, "bedwars", 32);
         this.plugin = plugin;
+    }
+    
+    public TeamMode getTeamMode() {
+        return teamMode;
+    }
+    
+    public void setTeamMode(TeamMode mode) {
+        this.teamMode = mode;
     }
     
     @Override
