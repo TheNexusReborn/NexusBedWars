@@ -1,27 +1,52 @@
 package com.thenexusreborn.bedwars;
 
+import com.sk89q.worldedit.bukkit.WorldEditPlugin;
+import com.sk89q.worldedit.bukkit.selections.CuboidSelection;
+import com.sk89q.worldedit.bukkit.selections.Selection;
+import com.sk89q.worldedit.regions.CuboidRegion;
 import com.stardevllc.minecraft.Position;
 import com.stardevllc.minecraft.StarColors;
 import com.stardevllc.minecraft.command.StarCommand;
 import com.stardevllc.minecraft.command.SubCommand;
 import com.stardevllc.minecraft.registry.*;
-import com.stardevllc.minecraft.smaterial.ArmorSlot;
-import com.stardevllc.minecraft.v1_8.LeatherArmorBuilder;
-import com.stardevllc.starcore.ItemBuilders;
 import com.stardevllc.starlib.helper.StringHelper;
 import com.stardevllc.starlib.objects.key.Key;
 import com.stardevllc.starlib.objects.key.Keys;
 import com.stardevllc.starlib.registry.*;
-import org.bukkit.enchantments.Enchantment;
+import com.thenexusreborn.api.NexusReborn;
+import com.thenexusreborn.api.player.NexusPlayer;
+import com.thenexusreborn.api.server.NexusServer;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemFlag;
-import org.bukkit.inventory.PlayerInventory;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 @SuppressWarnings("DuplicatedCode")
 public class BedwarsCommand extends StarCommand<NexusBedWarsPlugin> {
+    
+    private static CuboidSelection getWorldEditSelection(Player player) {
+        Selection selection = WorldEditPlugin.getPlugin(WorldEditPlugin.class).getSelection(player);
+        if (selection == null) {
+            return null;
+        }
+        
+        if (!(selection instanceof CuboidSelection cuboidRegion)) {
+            return null;
+        }
+        
+        return cuboidRegion;
+    }
+    
+    private static Position[] getPointsFromSelection(CuboidSelection selection) {
+        Location min = selection.getMinimumPoint();
+        Location max = selection.getMaximumPoint();
+        
+        Position minimum = new Position(min.getBlockX(), min.getBlockY(), min.getBlockZ());
+        Position maximum = new Position(max.getBlockX(), max.getBlockY(), max.getBlockZ());
+        return new Position[]{minimum, maximum};
+    }
+    
     public BedwarsCommand(NexusBedWarsPlugin plugin) {
         super(plugin, "bedwars", "Main Bedwars Command", "nexusbedwars.command", "bw");
         this.invalidSubCommandMessage = getColors().colorLegacy("&cInvalid Subcommand");
@@ -77,7 +102,6 @@ public class BedwarsCommand extends StarCommand<NexusBedWarsPlugin> {
             this.subCommands.add(new StartAllCmd());
             this.subCommands.add(new StopAllCmd());
             this.subCommands.add(new CreateCmd());
-            //create <type> <args based on type> - The types will be discrete sub commands as they are preset in the plugin
         }
         
         private final class CreateCmd extends SubCommand<NexusBedWarsPlugin> {
@@ -199,9 +223,20 @@ public class BedwarsCommand extends StarCommand<NexusBedWarsPlugin> {
                             return true;
                         }
                         
-                        //TODO have world edit selection interaction as well. The null provided will set it to the position
+                        Position boundsMin, boundsMax;
                         
-                        IslandForge forge = new IslandForge(name, null, null, position);
+                        CuboidSelection selection = getWorldEditSelection(player);
+                        if (selection == null) {
+                            boundsMin = position;
+                            boundsMax = position;
+                        } else {
+                            Position[] points = getPointsFromSelection(selection);
+                            boundsMin = points[0];
+                            boundsMax = points[1];
+                        }
+                        
+                        IslandForge forge = new IslandForge(name, boundsMin, boundsMax, position);
+                        forge.init(player.getWorld());
                         RegistryObject<IslandForge> genObject = FORGE_REGISTERER.register(key, forge);
                         
                         if (!genObject.isPresent()) {
@@ -214,7 +249,7 @@ public class BedwarsCommand extends StarCommand<NexusBedWarsPlugin> {
                     };
                 }
             }
-        } 
+        }
         
         Completer<NexusBedWarsPlugin> generatorCompleter = (plugin, sender, label, args, flagResults) -> {
             List<String> completions = new ArrayList<>();
@@ -402,9 +437,6 @@ public class BedwarsCommand extends StarCommand<NexusBedWarsPlugin> {
     private class ToolsCmd extends SubCommand<NexusBedWarsPlugin> {
         public ToolsCmd() {
             super(BedwarsCommand.this.plugin, BedwarsCommand.this, 0, "tools", "Manage the tools", "nexusbedwars.command.tools");
-//            this.invalidSubCommandMessage = getColors().colorLegacy("&cInvalid Subcommand");
-//            this.noPermissionMessage = getColors().colorLegacy("&cYou do not have permission to use that command");
-            
             this.subCommands.add(new GetCmd());
             this.subCommands.add(new UpgradeCmd());
             this.subCommands.add(new DowngradeCmd());
@@ -426,9 +458,6 @@ public class BedwarsCommand extends StarCommand<NexusBedWarsPlugin> {
         private class GetCmd extends SubCommand<NexusBedWarsPlugin> {
             public GetCmd() {
                 super(BedwarsCommand.this.plugin, ToolsCmd.this, 1, "get", "Get a tool", "nexusbedwars.command.tools.get");
-//                this.invalidSubCommandMessage = getColors().colorLegacy("&cInvalid Subcommand");
-//                this.noPermissionMessage = getColors().colorLegacy("&cYou do not have permission to use that command");
-                
                 this.executor = (p, sender, label, args, flagResults) -> {
                     Tool tool = Tool.REGISTRY.get(args[0]);
                     if (tool == null) {
@@ -459,9 +488,6 @@ public class BedwarsCommand extends StarCommand<NexusBedWarsPlugin> {
         private class UpgradeCmd extends SubCommand<NexusBedWarsPlugin> {
             public UpgradeCmd() {
                 super(BedwarsCommand.this.plugin, ToolsCmd.this, 1, "upgrade", "Upgrade a tool", "nexusbedwars.command.tools.upgrade");
-//                this.invalidSubCommandMessage = getColors().colorLegacy("&cInvalid Subcommand");
-//                this.noPermissionMessage = getColors().colorLegacy("&cYou do not have permission to use that command");
-                
                 this.executor = (p, sender, label, args, flagResults) -> {
                     Tool tool = Tool.REGISTRY.get(args[0]);
                     if (tool == null) {
@@ -492,9 +518,6 @@ public class BedwarsCommand extends StarCommand<NexusBedWarsPlugin> {
         private class DowngradeCmd extends SubCommand<NexusBedWarsPlugin> {
             public DowngradeCmd() {
                 super(BedwarsCommand.this.plugin, ToolsCmd.this, 1, "downgrade", "Downgrade a tool", "nexusbedwars.command.tools.downgrade");
-//                this.invalidSubCommandMessage = getColors().colorLegacy("&cInvalid Subcommand");
-//                this.noPermissionMessage = getColors().colorLegacy("&cYou do not have permission to use that command");
-                
                 this.executor = (p, sender, label, args, flagResults) -> {
                     Tool tool = Tool.REGISTRY.get(args[0]);
                     if (tool == null) {
@@ -531,51 +554,424 @@ public class BedwarsCommand extends StarCommand<NexusBedWarsPlugin> {
     private class TeamsCmd extends SubCommand<NexusBedWarsPlugin> {
         public TeamsCmd() {
             super(BedwarsCommand.this.plugin, BedwarsCommand.this, 0, "teams", "Manage the teams", "nexusbedwars.command.teams");
-            this.subCommands.add(new TestCmd(plugin));
-//            this.invalidSubCommandMessage = getColors().colorLegacy("&cInvalid Subcommand");
-//            this.noPermissionMessage = getColors().colorLegacy("&cYou do not have permission to use that command");
+            
+            for (GameTeam gameTeam : GameTeam.REGISTRY) {
+                this.subCommands.add(new TeamCmd(gameTeam));
+            }
         }
         
-        private class TestCmd extends SubCommand<NexusBedWarsPlugin> {
-            public TestCmd(NexusBedWarsPlugin plugin) {
-                super(BedwarsCommand.this.plugin, TeamsCmd.this, 1, "test", "Test team settings", "nexusbedwars.command.teams.test");
-                this.invalidSubCommandMessage = getColors().colorLegacy("&cInvalid Subcommand");
-                this.noPermissionMessage = getColors().colorLegacy("&cYou do not have permission to use that command");
-                this.executor = (p, sender, label, args, flagResults) -> {
-                    GameTeam gameTeam = GameTeam.get(args[0]);
-                    if (gameTeam == null) {
-                        StarColors.coloredMessage(sender, "&cInvalid Team " + args[0]);
-                        return true;
-                    }
-                    
-                    Player player = (Player) sender;
-                    
-                    PlayerInventory inv = player.getInventory();
-                    inv.setHelmet(new LeatherArmorBuilder(ArmorSlot.HELMET).addEnchant(Enchantment.WATER_WORKER, 1).unbreakable(true).addItemFlags(ItemFlag.HIDE_UNBREAKABLE).color(gameTeam.getDyeColor()).build());
-                    inv.setChestplate(new LeatherArmorBuilder(ArmorSlot.CHESTPLATE).unbreakable(true).addItemFlags(ItemFlag.HIDE_UNBREAKABLE).color(gameTeam.getDyeColor()).build());
-                    inv.setLeggings(new LeatherArmorBuilder(ArmorSlot.LEGGINGS).unbreakable(true).addItemFlags(ItemFlag.HIDE_UNBREAKABLE).color(gameTeam.getDyeColor()).build());
-                    inv.setBoots(new LeatherArmorBuilder(ArmorSlot.BOOTS).unbreakable(true).addItemFlags(ItemFlag.HIDE_UNBREAKABLE).color(gameTeam.getDyeColor()).build());
-                    
-                    inv.setItem(0, ItemBuilders.of(gameTeam.getWoolMaterial()).amount(64).build());
-                    inv.setItem(1, ItemBuilders.of(gameTeam.getGlassMaterial()).amount(64).build());
-                    inv.setItem(2, ItemBuilders.of(gameTeam.getClayMaterial()).amount(64).build());
-                    
-                    StarColors.coloredMessage(sender, "&7You have received the items for team " + gameTeam.getChatColor() + gameTeam.getName());
-                    return true;
-                };
+        private class TeamCmd extends SubCommand<NexusBedWarsPlugin> {
+            public TeamCmd(GameTeam team) {
+                super(TeamsCmd.this.plugin, TeamsCmd.this, 1, team.getName().toLowerCase(), "Manage the team " + team.getName().toLowerCase(), "nexusbedwars.command.teams." + team.getName().toLowerCase());
+                this.subCommands.add(new PlayersCmd(team));
+                this.subCommands.add(new UpgradesCmd(team));
+                this.subCommands.add(new ForgeCmd(team));
+                this.subCommands.add(new RegionCmd(team));
+            }
+            
+            private class PlayersCmd extends SubCommand<NexusBedWarsPlugin> {
+                public PlayersCmd(GameTeam team) {
+                    super(TeamCmd.this.plugin, TeamCmd.this, 2, "players", "Manage the players of the team" + team.getName().toLowerCase(), "nexusbedwars.command.teams." + team.getName().toLowerCase() + ".players");
+                    this.subCommands.add(new AddCmd(team));
+                    this.subCommands.add(new RemoveCmd(team));
+                }
                 
-                this.completer = (p, sender, label, args, flagResults) -> {
-                    List<String> completions = new ArrayList<>();
-                    if (args.length == 1) {
-                        for (GameTeam gameTeam : GameTeam.REGISTRY) {
-                            completions.add(gameTeam.getName().toLowerCase());
-                        }
+                private class AddCmd extends SubCommand<NexusBedWarsPlugin> {
+                    public AddCmd(GameTeam team) {
+                        super(PlayersCmd.this.plugin, PlayersCmd.this, 3, "add", "Add a player to the team " + team.getName().toLowerCase(), "nexusbedwars.command.teams." + team.getName().toLowerCase() + ".players.add");
+                        this.playerOnly = true;
                         
-                        completions.removeIf(c -> !c.startsWith(args[0]));
+                        this.executor = (plugin, sender, label, args, flagResults) -> {
+                            Player player = (Player) sender;
+                            NexusPlayer nexusPlayer = NexusReborn.getPlayerManager().getNexusPlayer(player.getUniqueId());
+                            if (nexusPlayer == null) {
+                                return true;
+                            }
+                            
+                            NexusServer server = nexusPlayer.getServer();
+                            if (!(server instanceof BWVirtualServer bwServer)) {
+                                getColors().coloredLegacy(player, "&cYou are not on a Bed Wars Server");
+                                return true;
+                            }
+                            
+                            TeamInstance teamInstance = bwServer.getTeamInstance(team);
+                            
+                            if (!(args.length > 0)) {
+                                getColors().coloredLegacy(sender, "&cYou must provide a player to add.");
+                                return true;
+                            }
+                            
+                            Player target = Bukkit.getPlayer(args[0]);
+                            if (target == null) {
+                                getColors().coloredLegacy(player, "&cYou provided an invalid player name. They must be online.");
+                                return true;
+                            }
+                            
+                            if (teamInstance.getPlayers().contains(target.getUniqueId())) {
+                                getColors().coloredLegacy(player, "&c" + player.getName() + " is already a member of the team " + team.getName().toUpperCase());
+                                return true;
+                            }
+                            
+                            
+                            teamInstance.addPlayer(target);
+                            getColors().coloredLegacy(player, "&e" + player.getName() + " has been added to the team " + team.getChatColor() + team.getName().toUpperCase());
+                            getColors().coloredLegacy(target, "&eYou have been added to the team " + team.getChatColor() + team.getName() + " &eby &b" + player.getName());
+                            return true;
+                        };
+                        
+                        this.completer = (plugin, sender, label, args, flagResults) -> {
+                            if (args.length != 1) {
+                                return List.of();
+                            }
+                            
+                            Player player = (Player) sender;
+                            NexusPlayer nexusPlayer = NexusReborn.getPlayerManager().getNexusPlayer(player.getUniqueId());
+                            if (nexusPlayer == null) {
+                                return List.of();
+                            }
+                            
+                            if (!(nexusPlayer.getServer() instanceof BWVirtualServer server)) {
+                                return List.of();
+                            }
+                            
+                            TeamInstance teamInstance = server.getTeamInstance(team);
+                            
+                            List<String> completions = new ArrayList<>();
+                            for (UUID uuid : server.getPlayers()) {
+                                Player p = Bukkit.getPlayer(uuid);
+                                if (p == null) {
+                                    continue;
+                                }
+                                
+                                if (teamInstance.getPlayers().contains(uuid)) {
+                                    continue;
+                                }
+                                
+                                completions.add(p.getName());
+                            }
+                            
+                            completions.removeIf(c -> !c.toLowerCase().startsWith(args[0].toLowerCase()));
+                            return completions;
+                        };
+                    }
+                }
+                
+                private class RemoveCmd extends SubCommand<NexusBedWarsPlugin> {
+                    public RemoveCmd(GameTeam team) {
+                        super(PlayersCmd.this.plugin, PlayersCmd.this, 3, "remove", "Removes a player from the team " + team.getName(), "nexusbedwars.command.teams." + team.getName().toLowerCase() + ".players.remove");
+                        this.playerOnly = true;
+                        
+                        this.executor = (plugin, sender, label, args, flagResults) -> {
+                            Player player = (Player) sender;
+                            NexusPlayer nexusPlayer = NexusReborn.getPlayerManager().getNexusPlayer(player.getUniqueId());
+                            if (nexusPlayer == null) {
+                                return true;
+                            }
+                            
+                            NexusServer server = nexusPlayer.getServer();
+                            if (!(server instanceof BWVirtualServer bwServer)) {
+                                getColors().coloredLegacy(player, "&cYou are not on a Bed Wars Server");
+                                return true;
+                            }
+                            
+                            TeamInstance teamInstance = bwServer.getTeamInstance(team);
+                            
+                            if (!(args.length > 0)) {
+                                getColors().coloredLegacy(sender, "&cYou must provide a player to add.");
+                                return true;
+                            }
+                            
+                            Player target = Bukkit.getPlayer(args[0]);
+                            if (target == null) {
+                                getColors().coloredLegacy(player, "&cYou provided an invalid player name. They must be online.");
+                                return true;
+                            }
+                            
+                            if (!teamInstance.getPlayers().contains(target.getUniqueId())) {
+                                getColors().coloredLegacy(player, "&c" + player.getName() + " is not a member of the team " + team.getName().toUpperCase());
+                                return true;
+                            }
+                            
+                            teamInstance.removePlayer(target);
+                            getColors().coloredLegacy(player, "&e" + player.getName() + " has been removed from the team " + team.getChatColor() + team.getName().toUpperCase());
+                            getColors().coloredLegacy(target, "&eYou have been removed from the team " + team.getChatColor() + team.getName() + " &eby &b" + player.getName());
+                            return true;
+                        };
+                        
+                        this.completer = (plugin, sender, label, args, flagResults) -> {
+                            if (args.length != 1) {
+                                return List.of();
+                            }
+                            
+                            Player player = (Player) sender;
+                            NexusPlayer nexusPlayer = NexusReborn.getPlayerManager().getNexusPlayer(player.getUniqueId());
+                            if (nexusPlayer == null) {
+                                return List.of();
+                            }
+                            
+                            if (!(nexusPlayer.getServer() instanceof BWVirtualServer server)) {
+                                return List.of();
+                            }
+                            
+                            TeamInstance teamInstance = server.getTeamInstance(team);
+                            
+                            List<String> completions = new ArrayList<>();
+                            for (UUID uuid : teamInstance.getPlayers()) {
+                                Player p = Bukkit.getPlayer(uuid);
+                                if (p == null) {
+                                    continue;
+                                }
+                                
+                                completions.add(p.getName());
+                            }
+                            
+                            completions.removeIf(c -> !c.toLowerCase().startsWith(args[0].toLowerCase()));
+                            return completions;
+                        };
+                    }
+                }
+            }
+            
+            private class UpgradesCmd extends SubCommand<NexusBedWarsPlugin> {
+                public UpgradesCmd(GameTeam team) {
+                    super(TeamCmd.this.plugin, TeamCmd.this, 2, "upgrades", "Manages the upgrades for the team " + team.getName(), "nexusbedwars.command.teams." + team.getName().toLowerCase() + ".upgrades");
+                    
+                    for (TeamUpgrade teamUpgrade : TeamUpgrade.REGISTRY) {
+                        this.subCommands.add(new UpgradeTypeCmd(team, teamUpgrade));
+                    }
+                }
+                
+                private class UpgradeTypeCmd extends SubCommand<NexusBedWarsPlugin> {
+                    public UpgradeTypeCmd(GameTeam team, TeamUpgrade upgrade) {
+                        super(UpgradesCmd.this.plugin, UpgradesCmd.this, 3, upgrade.getName().toLowerCase().replace(" ", "_"), "Manages the upgrade " + upgrade.getName() + " for the team " + team.getName(), "nexusbedwars.command.teams." + team.getName().toLowerCase() + ".upgrades." + upgrade.getName().toLowerCase());
+                        this.subCommands.add(new UpgradeCmd(team, upgrade));
+                        this.subCommands.add(new SetLevelCmd(team, upgrade));
                     }
                     
-                    return completions;
-                };
+                    private class UpgradeCmd extends SubCommand<NexusBedWarsPlugin> {
+                        public UpgradeCmd(GameTeam team, TeamUpgrade upgrade) {
+                            super(UpgradeTypeCmd.this.plugin, UpgradeTypeCmd.this, 4, "upgrade", "Upgrades the team " + team.getName() + " with the upgrade " + upgrade.getName(), "nexusbedwars.command.teams." + team.getName().toLowerCase() + ".upgrades." + upgrade.getName().toLowerCase() + ".upgrade");
+                            
+                            this.executor = (plugin, sender, label, args, flagResults) -> {
+                                Player player = (Player) sender;
+                                NexusPlayer nexusPlayer = NexusReborn.getPlayerManager().getNexusPlayer(player.getUniqueId());
+                                if (nexusPlayer == null) {
+                                    return true;
+                                }
+                                
+                                NexusServer server = nexusPlayer.getServer();
+                                if (!(server instanceof BWVirtualServer bwServer)) {
+                                    getColors().coloredLegacy(player, "&cYou are not on a Bed Wars Server");
+                                    return true;
+                                }
+                                
+                                TeamInstance teamInstance = bwServer.getTeamInstance(team);
+                                if (!teamInstance.canUpgrade(upgrade)) {
+                                    getColors().coloredLegacy(sender, "&cThe team " + team.getName() + " does not have any more " + upgrade.getName() + " upgrades.");
+                                    return true;
+                                }
+                                
+                                if (!teamInstance.upgrade(upgrade)) {
+                                    getColors().coloredLegacy(sender, "&cFailed to apply the upgrade " + upgrade.getName() + " to the team " + team.getName());
+                                    return true;
+                                }
+                                
+                                getColors().coloredLegacy(sender, "&eUpgraded the team " + team.getName() + "'s " + upgrade.getName() + " to level " + teamInstance.getCurrentUpgradeLevel(upgrade).getName());
+                                return true;
+                            };
+                        }
+                    }
+                    
+                    private class SetLevelCmd extends SubCommand<NexusBedWarsPlugin> {
+                        public SetLevelCmd(GameTeam team, TeamUpgrade upgrade) {
+                            super(UpgradeTypeCmd.this.plugin, UpgradeTypeCmd.this, 4, "setlevel", "Sets the upgrade level of the team " + team.getName() + " with the upgrade " + upgrade.getName(), "nexusbedwars.command.teams." + team.getName().toLowerCase() + ".upgrades." + upgrade.getName().toLowerCase() + ".setlevel");
+                            
+                            this.executor = (plugin, sender, label, args, flagResults) -> {
+                                Player player = (Player) sender;
+                                NexusPlayer nexusPlayer = NexusReborn.getPlayerManager().getNexusPlayer(player.getUniqueId());
+                                if (nexusPlayer == null) {
+                                    return true;
+                                }
+                                
+                                NexusServer server = nexusPlayer.getServer();
+                                if (!(server instanceof BWVirtualServer bwServer)) {
+                                    getColors().coloredLegacy(player, "&cYou are not on a Bed Wars Server");
+                                    return true;
+                                }
+                                
+                                TeamInstance teamInstance = bwServer.getTeamInstance(team);
+                                
+                                int level;
+                                try {
+                                    level = Integer.parseInt(args[0]);
+                                } catch (ArrayIndexOutOfBoundsException e) {
+                                    getColors().coloredLegacy(sender, "&cYou must provide a level number");
+                                    return true;
+                                } catch (NumberFormatException e) {
+                                    getColors().coloredLegacy(sender, "&cInvalid number value: " + args[0]);
+                                    return true;
+                                }
+                                
+                                TeamUpgrade.Level upgradeLevel = upgrade.getLevel(level);
+                                if (upgradeLevel == null) {
+                                    getColors().coloredLegacy(sender, "&cInvalid level: " + level);
+                                    return true;
+                                }
+                                
+                                if (!teamInstance.setLevel(upgrade, upgradeLevel)) {
+                                    getColors().coloredLegacy(sender, "&cFailed to apply the upgrade " + upgrade.getName() + " to the team " + team.getName());
+                                    return true;
+                                }
+                                
+                                getColors().coloredLegacy(sender, "&eUpgraded the team " + team.getName() + "'s " + upgrade.getName() + " to " + teamInstance.getCurrentUpgradeLevel(upgrade).getName());
+                                return true;
+                            };
+                        }
+                    }
+                }
+            }
+            
+            private class ForgeCmd extends SubCommand<NexusBedWarsPlugin> {
+                public ForgeCmd(GameTeam team) {
+                    super(TeamCmd.this.plugin, TeamCmd.this, 2, "forge", "Manage the forge of the team " + team.getName().toLowerCase(), "nexusbedwars.command.teams." + team.getName().toLowerCase() + ".forge");
+                    this.subCommands.add(new InitCmd(team));
+                    this.subCommands.add(new SetTierCmd(team));
+                }
+                
+                private class InitCmd extends SubCommand<NexusBedWarsPlugin> {
+                    public InitCmd(GameTeam team) {
+                        super(ForgeCmd.this.plugin, ForgeCmd.this, 3, "init", "Initialize the team's forge", "nexusbedwars.command.teams." + team.getName().toLowerCase() + ".forge.init");
+                        
+                        this.executor = (plugin, sender, label, args, flagResults) -> {
+                            Player player = (Player) sender;
+                            NexusPlayer nexusPlayer = NexusReborn.getPlayerManager().getNexusPlayer(player.getUniqueId());
+                            if (nexusPlayer == null) {
+                                return true;
+                            }
+                            
+                            NexusServer server = nexusPlayer.getServer();
+                            if (!(server instanceof BWVirtualServer bwServer)) {
+                                getColors().coloredLegacy(player, "&cYou are not on a Bed Wars Server");
+                                return true;
+                            }
+                            
+                            TeamInstance teamInstance = bwServer.getTeamInstance(team);
+                            if (teamInstance.getForge() != null) {
+                                getColors().coloredLegacy(player, "&cThat team already has their forge initialized.");
+                                return true;
+                            }
+                            
+                            Location location = player.getLocation();
+                            Position position = new Position(location.getBlockX(), location.getBlockY(), location.getBlockZ());
+                            
+                            Position boundsMin, boundsMax;
+                            
+                            CuboidSelection selection = getWorldEditSelection(player);
+                            if (selection == null) {
+                                boundsMin = position;
+                                boundsMax = position;
+                            } else {
+                                Position[] points = getPointsFromSelection(selection);
+                                boundsMin = points[0];
+                                boundsMax = points[1];
+                            }
+                            
+                            IslandForge forge = new IslandForge(server.getName().toLowerCase() + "_" + team.getName().toLowerCase() + "_forge", boundsMin, boundsMax, position);
+                            PluginKey key = PluginKey.of(plugin, forge.getName());
+                            forge.setKey(key);
+                            teamInstance.setForge(forge);
+                            NexusBedWarsPlugin.GENERATORS.register(key, forge);
+                            forge.init(player.getWorld());
+                            getColors().coloredLegacy(sender, "&eYou initialized the island forge for the team " + team.getChatColor() + team.getName().toUpperCase());
+                            return true;
+                        };
+                    }
+                }
+                
+                private class SetTierCmd extends SubCommand<NexusBedWarsPlugin> {
+                    public SetTierCmd(GameTeam team) {
+                        super(ForgeCmd.this.plugin, ForgeCmd.this, 3, "settier", "Sets the tier of the team's forge", "nexusbedwars.command.teams." + team.getName().toLowerCase() + ".forge.settier");
+                        
+                        this.executor = (plugin, sender, label, args, flagResults) -> {
+                            Player player = (Player) sender;
+                            NexusPlayer nexusPlayer = NexusReborn.getPlayerManager().getNexusPlayer(player.getUniqueId());
+                            if (nexusPlayer == null) {
+                                return true;
+                            }
+                            
+                            NexusServer server = nexusPlayer.getServer();
+                            if (!(server instanceof BWVirtualServer bwServer)) {
+                                getColors().coloredLegacy(player, "&cYou are not on a Bed Wars Server");
+                                return true;
+                            }
+                            
+                            TeamInstance teamInstance = bwServer.getTeamInstance(team);
+                            IslandForge forge = teamInstance.getForge();
+                            if (forge == null) {
+                                getColors().coloredLegacy(player, "&cThat team does not have their forge initialized.");
+                                return true;
+                            }
+                            
+                            if (!(args.length > 0)) {
+                                getColors().coloredLegacy(player, "&cYou must provide a tier name");
+                                return true;
+                            }
+                            
+                            IslandForge.Tier tier;
+                            try {
+                                tier = IslandForge.Tier.valueOf(args[0].toUpperCase());
+                            } catch (Exception e) {
+                                getColors().coloredLegacy(player, "&cInvalid Tier Name: " + args[0]);
+                                return true;
+                            }
+                            
+                            forge.setTier(tier);
+                            getColors().coloredLegacy(sender, "&eYou set " + team.getChatColor() + team.getName().toUpperCase() + "&e's forge to &e" + tier.name() + "&e.");
+                            return true;
+                        };
+                        
+                        //TODO Tab Completion for the tier
+                    }
+                }
+            }
+            
+            private class RegionCmd extends SubCommand<NexusBedWarsPlugin> {
+                public RegionCmd(GameTeam team) {
+                    super(TeamsCmd.this.plugin, TeamsCmd.this, 2, "region", "Manages the region of the team " + team.getName(), "nexusbedwars.command.teams." + team.getName().toLowerCase() + ".region");
+                    this.subCommands.add(new SetCmd(team));
+                }
+                
+                private class SetCmd extends SubCommand<NexusBedWarsPlugin> {
+                    public SetCmd(GameTeam team) {
+                        super(RegionCmd.this.plugin, RegionCmd.this, 3, "set", "Sets the region to your current WorldEdit selection", "nexusbedwars.command.teams." + team.getName().toLowerCase() + ".region.set");
+                        
+                        this.executor = (plugin, sender, label, args, flagResults) -> {
+                            Player player = (Player) sender;
+                            NexusPlayer nexusPlayer = NexusReborn.getPlayerManager().getNexusPlayer(player.getUniqueId());
+                            if (nexusPlayer == null) {
+                                return true;
+                            }
+                            
+                            NexusServer server = nexusPlayer.getServer();
+                            if (!(server instanceof BWVirtualServer bwServer)) {
+                                getColors().coloredLegacy(player, "&cYou are not on a Bed Wars Server");
+                                return true;
+                            }
+                            
+                            TeamInstance teamInstance = bwServer.getTeamInstance(team);
+                            CuboidSelection selection = getWorldEditSelection(player);
+                            if (selection == null) {
+                                getColors().coloredLegacy(sender, "&cYou do not have a valid WorldEdit Cuboid Selection.");
+                                return true;
+                            }
+                            
+                            CuboidRegion region = new CuboidRegion(selection.getNativeMinimumPoint(), selection.getNativeMaximumPoint());
+                            teamInstance.setRegion(region);
+                            getColors().coloredLegacy(player, "&eYou set the " + team.getChatColor() + team.getName() + "&e's region to your current WorldEdit selection");
+                            return true;
+                        };
+                    }
+                }
             }
         }
     }
