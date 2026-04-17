@@ -19,7 +19,7 @@ public class GameTeam implements Keyable {
         PINK(Color.FUCHSIA, "&d", SMaterial.PINK_WOOL, SMaterial.PINK_TERRACOTTA, SMaterial.PINK_STAINED_GLASS), 
         ORANGE(Color.ORANGE, "&6", SMaterial.ORANGE_WOOL, SMaterial.ORANGE_TERRACOTTA, SMaterial.ORANGE_STAINED_GLASS), 
         WHITE(Color.WHITE, "&5", SMaterial.WHITE_WOOL, SMaterial.WHITE_TERRACOTTA, SMaterial.WHITE_STAINED_GLASS), 
-        SPECATATOR(Color.GRAY, "&7", null, null, null);
+        SPECTATOR(Color.GRAY, "&7", null, null, null);
         
         private final Color dyeColor;
         private final String chatColor;
@@ -73,7 +73,7 @@ public class GameTeam implements Keyable {
     public static final RegistryObject<GameTeam> PINK = REGISTERER.register("pink", new GameTeam(GameTeam.TeamColor.PINK));
     public static final RegistryObject<GameTeam> ORANGE = REGISTERER.register("orange", new GameTeam(GameTeam.TeamColor.ORANGE));
     public static final RegistryObject<GameTeam> WHITE = REGISTERER.register("white", new GameTeam(GameTeam.TeamColor.WHITE));
-    public static final RegistryObject<GameTeam> SPECATORS = REGISTERER.register("spectators", new GameTeam(TeamColor.SPECATATOR));
+    public static final RegistryObject<GameTeam> SPECTATORS = REGISTERER.register("spectators", new GameTeam(TeamColor.SPECTATOR));
     
     static {
         REGISTRY.freeze();
