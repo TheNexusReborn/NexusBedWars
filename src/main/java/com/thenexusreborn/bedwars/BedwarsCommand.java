@@ -126,6 +126,8 @@ public class BedwarsCommand extends StarCommand<NexusBedWarsPlugin> {
                             return true;
                         }
                         
+                        generator.init(player.getWorld());
+                        
                         getColors().coloredLegacy(sender, "&eCreated the &d" + name + " &egenerator &b" + key.getKey());
                         return true;
                     };
