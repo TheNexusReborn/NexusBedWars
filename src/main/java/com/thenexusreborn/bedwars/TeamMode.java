@@ -1,9 +1,8 @@
 package com.thenexusreborn.bedwars;
 
-//TODO Maybe rename? 
-public enum Mode {
+public enum TeamMode {
     SOLO,
     DUOS,
-    TRIOS, 
+    TRIOS,
     QUADS
 }
