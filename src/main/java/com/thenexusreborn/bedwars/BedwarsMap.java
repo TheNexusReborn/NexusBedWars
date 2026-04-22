@@ -12,8 +12,6 @@ public class BedwarsMap extends GameMap {
             Item Shop Location
             Upgrade Shop Location
             Island Bounds
-            Bed Location
-            Bed Facing
         Emerald Gen Locations
         Diamond Gen Locations
      */
