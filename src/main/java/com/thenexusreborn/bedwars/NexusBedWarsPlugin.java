@@ -77,6 +77,35 @@ public class NexusBedWarsPlugin extends NexusSpigotPlugin implements Listener {
             }
         }, 1L, 1L);
         
+        getServer().getScheduler().runTaskTimer(this, () -> servers.forEach((i, server) -> {
+            for (TeamInstance teamInstance : server.getTeams().values()) {
+                for (Key upgradeKey : teamInstance.getUpgrades().keySet()) {
+                    TeamUpgrade.Level currentLevel = teamInstance.getCurrentUpgradeLevel(upgradeKey);
+                    
+                    if (!currentLevel.isRepeating()) {
+                        continue;
+                    }
+                    
+                    if (currentLevel != null) {
+                        if (currentLevel.getTeamConsumer() != null) {
+                            currentLevel.getTeamConsumer().accept(teamInstance);
+                        }
+                        
+                        if (currentLevel.getPlayerConsumer() != null) {
+                            for (UUID uuid : teamInstance.getPlayers()) {
+                                Player player = Bukkit.getPlayer(uuid);
+                                if (player == null) {
+                                    continue;
+                                }
+                                
+                                currentLevel.getPlayerConsumer().accept(player);
+                            }
+                        }
+                    }
+                }
+            }
+        }), 1L, 20L);
+        
         getServer().getPluginManager().registerEvents(this, this);
         
         Plugin nexusHub = Bukkit.getPluginManager().getPlugin("NexusHub");
