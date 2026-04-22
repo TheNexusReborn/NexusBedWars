@@ -17,9 +17,11 @@ public class BWVirtualServer extends VirtualServer {
     private NexusBedWarsPlugin plugin;
     
     private Game game;
+    private TeamMode teamMode = TeamMode.SOLO;
     
     private final Map<Key, TeamInstance> teams = new HashMap<>();
-    private TeamMode teamMode = TeamMode.SOLO;
+    
+    private final Map<UUID, BWPlayer> bedwarsPlayers = new HashMap<>();
     
     public BWVirtualServer(NexusBedWarsPlugin plugin, InstanceServer parent, String name) {
         super(parent, name, "bedwars", 32);
@@ -48,7 +50,7 @@ public class BWVirtualServer extends VirtualServer {
         
         GameTeam team = bwPlayer.getTeam();
         if (team != null) {
-            TeamInstance teamInstance = this.teams.computeIfAbsent(team.getKey(), k -> new TeamInstance(team));
+            TeamInstance teamInstance = this.teams.computeIfAbsent(team.getKey(), k -> new TeamInstance(this, team));
             teamInstance.addPlayer(bwPlayer.getUniqueId());
         }
         
@@ -59,6 +61,59 @@ public class BWVirtualServer extends VirtualServer {
         }
         
         this.players.add(player.getUniqueId());
+        this.bedwarsPlayers.put(player.getUniqueId(), bwPlayer);
+    }
+    
+    public sealed interface AddToTeamResult {
+        record NoBWPlayerData(Player player, BWVirtualServer server, GameTeam team) implements AddToTeamResult {}
+        record AlreadyInTeam(Player player, BWPlayer bwPlayer, BWVirtualServer server, TeamInstance team) implements AddToTeamResult {}
+        record Success(Player player, BWPlayer bwPlayer, BWVirtualServer server, TeamInstance team, GameTeam previousTeam) implements AddToTeamResult {}
+    }
+    
+    public AddToTeamResult addToTeam(Player player, GameTeam team) {
+        BWPlayer bwPlayer = this.bedwarsPlayers.get(player.getUniqueId());
+        if (bwPlayer == null) {
+            return new AddToTeamResult.NoBWPlayerData(player, this, team);
+        }
+        
+        TeamInstance teamInstance = getTeamInstance(team);
+        
+        if (teamInstance.getPlayers().contains(player.getUniqueId())) {
+            return new AddToTeamResult.AlreadyInTeam(player, bwPlayer, this, teamInstance);
+        }
+        
+        GameTeam previousTeam = bwPlayer.getTeam();
+        if (previousTeam != null) {
+            TeamInstance prevInstance = getTeamInstance(previousTeam);
+            prevInstance.removePlayer(player);
+        }
+        
+        teamInstance.addPlayer(player);
+        bwPlayer.setTeam(team);
+        return new AddToTeamResult.Success(player, bwPlayer, this, teamInstance, previousTeam);
+    }
+    
+    public sealed interface RemoveFromTeamResult {
+        record NoBWPlayerData(Player player, BWVirtualServer server, GameTeam team) implements RemoveFromTeamResult {}
+        record NotInTeam(Player player, BWPlayer bwPlayer, BWVirtualServer server, TeamInstance team) implements RemoveFromTeamResult {}
+        record Success(Player player, BWPlayer bwPlayer, BWVirtualServer server, TeamInstance team) implements RemoveFromTeamResult {}
+    }
+    
+    public RemoveFromTeamResult removeFromTeam(Player player, GameTeam team) {
+        BWPlayer bwPlayer = this.bedwarsPlayers.get(player.getUniqueId());
+        if (bwPlayer == null) {
+            return new RemoveFromTeamResult.NoBWPlayerData(player, this, team);
+        }
+        
+        TeamInstance teamInstance = getTeamInstance(team);
+        
+        if (!teamInstance.getPlayers().contains(player.getUniqueId())) {
+            return new RemoveFromTeamResult.NotInTeam(player, bwPlayer, this, teamInstance);
+        }
+        
+        teamInstance.removePlayer(player);
+        bwPlayer.setTeam(null);
+        return new RemoveFromTeamResult.Success(player, bwPlayer, this, teamInstance);
     }
     
     public TeamInstance getTeamInstance(GameTeam gameTeam) {
@@ -66,7 +121,7 @@ public class BWVirtualServer extends VirtualServer {
             return this.teams.get(gameTeam.getKey());
         }
         
-        TeamInstance teamInstance = new TeamInstance(gameTeam);
+        TeamInstance teamInstance = new TeamInstance(this, gameTeam);
         this.teams.put(gameTeam.getKey(), teamInstance);
         
         ChatRoom teamRoom = new GameTeamChatroom(plugin, this, gameTeam);
@@ -104,6 +159,10 @@ public class BWVirtualServer extends VirtualServer {
     @Override
     public void onStop() {
         
+    }
+    
+    public BWPlayer getBedwarsPlayer(UUID uuid) {
+        return this.bedwarsPlayers.get(uuid);
     }
     
     public Game getGame() {
