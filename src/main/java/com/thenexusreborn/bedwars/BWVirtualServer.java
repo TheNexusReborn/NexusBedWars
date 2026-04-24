@@ -8,6 +8,7 @@ import com.thenexusreborn.api.player.NexusPlayer;
 import com.thenexusreborn.api.player.Rank;
 import com.thenexusreborn.api.server.InstanceServer;
 import com.thenexusreborn.api.server.VirtualServer;
+import org.bukkit.*;
 import org.bukkit.entity.Player;
 
 import java.util.*;
@@ -62,6 +63,11 @@ public class BWVirtualServer extends VirtualServer {
         
         this.players.add(player.getUniqueId());
         this.bedwarsPlayers.put(player.getUniqueId(), bwPlayer);
+        
+        var world = Bukkit.getWorld("world");
+        var block = world.getBlockAt(0, 60, 0);
+        block.setType(Material.BEDROCK);
+        bwPlayer.getServerPlayer().teleport(new Location(world, 0, 61, 0));
     }
     
     public sealed interface AddToTeamResult {
