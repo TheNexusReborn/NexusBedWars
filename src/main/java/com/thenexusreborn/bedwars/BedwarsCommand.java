@@ -555,6 +555,9 @@ public class BedwarsCommand extends StarCommand<NexusBedWarsPlugin> {
             super(BedwarsCommand.this.plugin, BedwarsCommand.this, 0, "teams", "Manage the teams", "nexusbedwars.command.teams");
             
             for (GameTeam gameTeam : GameTeam.REGISTRY) {
+                if (gameTeam == GameTeam.SPECTATORS.get()) {
+                    continue;
+                }
                 this.subCommands.add(new TeamCmd(gameTeam));
             }
         }
