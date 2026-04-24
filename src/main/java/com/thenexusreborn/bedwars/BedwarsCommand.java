@@ -967,7 +967,7 @@ public class BedwarsCommand extends StarCommand<NexusBedWarsPlugin> {
                                 return true;
                             }
                             
-                            CuboidRegion region = new CuboidRegion(selection.getNativeMinimumPoint(), selection.getNativeMaximumPoint());
+                            Cuboid region = new Cuboid(selection.getMinimumPoint(), selection.getMaximumPoint());
                             teamInstance.setRegion(region);
                             getColors().coloredLegacy(player, "&eYou set the " + team.getChatColor() + team.getName() + "&e's region to your current WorldEdit selection");
                             return true;
