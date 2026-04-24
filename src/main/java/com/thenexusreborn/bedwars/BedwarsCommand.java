@@ -21,6 +21,7 @@ import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
 import java.util.*;
+import java.util.function.Predicate;
 
 @SuppressWarnings("DuplicatedCode")
 public class BedwarsCommand extends StarCommand<NexusBedWarsPlugin> {
@@ -97,7 +98,7 @@ public class BedwarsCommand extends StarCommand<NexusBedWarsPlugin> {
             this.subCommands.add(new StartCmd());
             this.subCommands.add(new StopCmd());
             this.subCommands.add(new UpgradeCmd());
-            //upgradeall command
+            this.subCommands.add(new UpgradeAllCmd());
             this.subCommands.add(new StartAllCmd());
             this.subCommands.add(new StopAllCmd());
             this.subCommands.add(new CreateCmd());
@@ -250,7 +251,7 @@ public class BedwarsCommand extends StarCommand<NexusBedWarsPlugin> {
             }
         }
         
-        Completer<NexusBedWarsPlugin> generatorCompleter = (plugin, sender, label, args, flagResults) -> {
+        final Completer<NexusBedWarsPlugin> generatorCompleter = (plugin, sender, label, args, flagResults) -> {
             List<String> completions = new ArrayList<>();
             if (args.length == 1) {
                 for (Key key : NexusBedWarsPlugin.GENERATORS.keySet()) {
@@ -267,26 +268,93 @@ public class BedwarsCommand extends StarCommand<NexusBedWarsPlugin> {
             return completions;
         };
         
+        private class UpgradeAllCmd extends SubCommand<NexusBedWarsPlugin> {
+            public UpgradeAllCmd() {
+                super(BedwarsCommand.this.plugin, GeneratorsCmd.this, 1, "upgradeall", "Upgrades all generators", "nexusbedwars.command.generators.startall");
+                
+                this.executor = (plugin, sender, label, args, flagResults) -> {
+                    Player player = (Player) sender;
+                    
+                    Predicate<BedwarsGenerator> filter = new GeneratorFilter(args);
+                    
+                    int successful = 0, notMatchFilter = 0, notInitialized = 0, cantUpgrade = 0;
+                    for (BedwarsGenerator generator : NexusBedWarsPlugin.GENERATORS) {
+                        if (!filter.test(generator)) {
+                            notMatchFilter++;
+                            continue;
+                        }
+                        
+                        if (!generator.isInitialized()) {
+                            notInitialized++;
+                            continue;
+                        }
+                        
+                        if (generator.upgrade()) {
+                            successful++;
+                        } else {
+                            cantUpgrade++;
+                        }
+                    }
+                    
+                    getColors().coloredLegacy(sender, "&eUpgraded &b" + successful + " &egenerators.");
+                    if (notMatchFilter > 0) {
+                        getColors().coloredLegacy(sender, "  &8- &c" + notMatchFilter + " &7did not match the filter");
+                    }
+                    
+                    if (notInitialized > 0) {
+                        getColors().coloredLegacy(sender, "  &8- &c" + notInitialized + " &7were not initialized");
+                    }
+                    
+                    if (cantUpgrade > 0) {
+                        getColors().coloredLegacy(sender, "  &8- &c" + cantUpgrade + " &7could not be upgraded");
+                    }
+                    return true;
+                };
+            }
+        }
+        
         private class StopAllCmd extends SubCommand<NexusBedWarsPlugin> {
             public StopAllCmd() {
                 super(BedwarsCommand.this.plugin, GeneratorsCmd.this, 1, "stopall", "Stops all generators", "nexusbedwars.command.generators.stopall");
                 
                 this.executor = (plugin, sender, label, args, flagResults) -> {
-                    int successfulGenerators = 0;
+                    
+                    Predicate<BedwarsGenerator> filter = new GeneratorFilter(args);
+                    
+                    int successful = 0, notMatchFilter = 0, notInitialized = 0, notRunning = 0;
                     for (BedwarsGenerator generator : NexusBedWarsPlugin.GENERATORS) {
+                        if (!filter.test(generator)) {
+                            notMatchFilter++;
+                            continue;
+                        }
+                        
                         if (!generator.isInitialized()) {
+                            notInitialized++;
                             continue;
                         }
                         
                         if (!generator.isRunning()) {
+                            notRunning++;
                             continue;
                         }
                         
                         generator.stop();
-                        successfulGenerators++;
+                        successful++;
                     }
                     
-                    getColors().coloredLegacy(sender, "&eStopped &b" + successfulGenerators + " &egenerators.");
+                    getColors().coloredLegacy(sender, "&eStopped &b" + successful + " &egenerators.");
+                    if (notMatchFilter > 0) {
+                        getColors().coloredLegacy(sender, "  &8- &c" + notMatchFilter + " &7did not match the filter");
+                    }
+                    
+                    if (notInitialized > 0) {
+                        getColors().coloredLegacy(sender, "  &8- &c" + notInitialized + " &7were not initialized");
+                    }
+                    
+                    if (notRunning > 0) {
+                        getColors().coloredLegacy(sender, "  &8- &c" + notRunning + " &7were not running");
+                    }
+                    
                     return true;
                 };
             }
@@ -299,21 +367,42 @@ public class BedwarsCommand extends StarCommand<NexusBedWarsPlugin> {
                 this.executor = (plugin, sender, label, args, flagResults) -> {
                     Player player = (Player) sender;
                     
-                    int successfulGenerators = 0;
+                    Predicate<BedwarsGenerator> filter = new GeneratorFilter(args);
+                    
+                    int successful = 0, notMatchFilter = 0, notInitialized = 0, alreadyRunning = 0;
                     for (BedwarsGenerator generator : NexusBedWarsPlugin.GENERATORS) {
+                        if (!filter.test(generator)) {
+                            notMatchFilter++;
+                            continue;
+                        }
+                        
                         if (!generator.isInitialized()) {
+                            notInitialized++;
                             generator.init(player.getWorld());
                         }
                         
                         if (generator.isRunning()) {
+                            alreadyRunning++;
                             continue;
                         }
                         
                         generator.start();
-                        successfulGenerators++;
+                        successful++;
                     }
                     
-                    getColors().coloredLegacy(sender, "&eStarted &b" + successfulGenerators + " &egenerators.");
+                    if (notInitialized > 0) {
+                        getColors().coloredLegacy(sender, "&eInitialized &b" + notInitialized + " &egenerators.");
+                    }
+                    
+                    getColors().coloredLegacy(sender, "&eStarted &b" + successful + " &egenerators.");
+                    
+                    if (notMatchFilter > 0) {
+                        getColors().coloredLegacy(sender, "  &8- &c" + notMatchFilter + " &7did not match the filter");
+                    }
+                    
+                    if (alreadyRunning > 0) {
+                        getColors().coloredLegacy(sender, "  &8- &c" + alreadyRunning + " &7were already running");
+                    }
                     return true;
                 };
             }
