@@ -10,8 +10,7 @@ import com.stardevllc.minecraft.command.StarCommand;
 import com.stardevllc.minecraft.command.SubCommand;
 import com.stardevllc.minecraft.registry.*;
 import com.stardevllc.starlib.helper.StringHelper;
-import com.stardevllc.starlib.objects.key.Key;
-import com.stardevllc.starlib.objects.key.Keys;
+import com.stardevllc.starlib.objects.key.*;
 import com.stardevllc.starlib.registry.*;
 import com.thenexusreborn.api.NexusReborn;
 import com.thenexusreborn.api.player.NexusPlayer;
@@ -152,7 +151,15 @@ public class BedwarsCommand extends StarCommand<NexusBedWarsPlugin> {
                         
                         generator.init(player.getWorld());
                         
-                        getColors().coloredLegacy(sender, "&eCreated the &d" + name + " &egenerator &b" + key);
+                        Key fullKey = generator.getKey();
+                        
+                        for (Map.Entry<Key, BedwarsGenerator> entry : NexusBedWarsPlugin.GENERATORS.entrySet()) {
+                            if (entry.getValue() == generator) {
+                                fullKey = entry.getKey();
+                                break;
+                            }
+                        }
+                        getColors().coloredLegacy(sender, "&eCreated the &d" + name + " &egenerator &b" + fullKey);
                         return true;
                     };
                 }
@@ -244,7 +251,16 @@ public class BedwarsCommand extends StarCommand<NexusBedWarsPlugin> {
                             return true;
                         }
                         
-                        getColors().coloredLegacy(sender, "&eCreated the &dforge &b" + key);
+                        Key fullKey = genObject.getKey();
+                        
+                        for (Map.Entry<Key, BedwarsGenerator> entry : NexusBedWarsPlugin.GENERATORS.entrySet()) {
+                            if (entry.getValue() == genObject.get()) {
+                                fullKey = entry.getKey();
+                                break;
+                            }
+                        }
+                        
+                        getColors().coloredLegacy(sender, "&eCreated the &dforge &b" + fullKey);
                         return true;
                     };
                 }
@@ -423,8 +439,16 @@ public class BedwarsCommand extends StarCommand<NexusBedWarsPlugin> {
                     Key key = Keys.of(args[0]);
                     BedwarsGenerator generator = NexusBedWarsPlugin.GENERATORS.get(key);
                     if (generator == null) {
-                        getColors().coloredLegacy(sender, "&cInvalid generator id &e" + args[0] + "&c.");
-                        return true;
+                        List<Key> partial = NexusBedWarsPlugin.GENERATORS.getPartial(key);
+                        if (partial.size() == 1) {
+                            generator = NexusBedWarsPlugin.GENERATORS.get(partial.getFirst());
+                        } else if (partial.size() > 1) {
+                            getColors().coloredLegacy(sender, "&cA total of &3" + partial.size() + " &cgenerators match the term &e" + args[0]);
+                            return true;
+                        } else {
+                            getColors().coloredLegacy(sender, "&cInvalid generator &e" + args[0] + "&c.");
+                            return true;
+                        }
                     }
                     
                     if (!generator.isInitialized()) {
@@ -437,7 +461,17 @@ public class BedwarsCommand extends StarCommand<NexusBedWarsPlugin> {
                     }
                     
                     generator.start();
-                    getColors().coloredLegacy(sender, "&eStarted the generator &b" + generator.getKey());
+                    
+                    Key fullKey = generator.getKey();
+                    
+                    for (Map.Entry<Key, BedwarsGenerator> entry : NexusBedWarsPlugin.GENERATORS.entrySet()) {
+                        if (entry.getValue() == generator) {
+                            fullKey = entry.getKey();
+                            break;
+                        }
+                    }
+                    
+                    getColors().coloredLegacy(sender, "&eStarted the generator &b" + fullKey);
                     return true;
                 };
                 
@@ -458,8 +492,16 @@ public class BedwarsCommand extends StarCommand<NexusBedWarsPlugin> {
                     Key key = Keys.of(args[0]);
                     BedwarsGenerator generator = NexusBedWarsPlugin.GENERATORS.get(key);
                     if (generator == null) {
-                        getColors().coloredLegacy(sender, "&cInvalid generator id &e" + args[0] + "&c.");
-                        return true;
+                        List<Key> partial = NexusBedWarsPlugin.GENERATORS.getPartial(key);
+                        if (partial.size() == 1) {
+                            generator = NexusBedWarsPlugin.GENERATORS.get(partial.getFirst());
+                        } else if (partial.size() > 1) {
+                            getColors().coloredLegacy(sender, "&cA total of &3" + partial.size() + " &cgenerators match the term &e" + args[0]);
+                            return true;
+                        } else {
+                            getColors().coloredLegacy(sender, "&cInvalid generator &e" + args[0] + "&c.");
+                            return true;
+                        }
                     }
                     
                     if (!generator.isInitialized()) {
@@ -472,8 +514,17 @@ public class BedwarsCommand extends StarCommand<NexusBedWarsPlugin> {
                         return true;
                     }
                     
+                    Key fullKey = generator.getKey();
+                    
+                    for (Map.Entry<Key, BedwarsGenerator> entry : NexusBedWarsPlugin.GENERATORS.entrySet()) {
+                        if (entry.getValue() == generator) {
+                            fullKey = entry.getKey();
+                            break;
+                        }
+                    }
+                    
                     generator.stop();
-                    getColors().coloredLegacy(sender, "&eStopped the generator &b" + generator.getKey());
+                    getColors().coloredLegacy(sender, "&eStopped the generator &b" + fullKey);
                     return true;
                 };
                 
@@ -494,8 +545,16 @@ public class BedwarsCommand extends StarCommand<NexusBedWarsPlugin> {
                     Key key = Keys.of(args[0]);
                     BedwarsGenerator generator = NexusBedWarsPlugin.GENERATORS.get(key);
                     if (generator == null) {
-                        getColors().coloredLegacy(sender, "&cInvalid generator id &e" + args[0] + "&c.");
-                        return true;
+                        List<Key> partial = NexusBedWarsPlugin.GENERATORS.getPartial(key);
+                        if (partial.size() == 1) {
+                            generator = NexusBedWarsPlugin.GENERATORS.get(partial.getFirst());
+                        } else if (partial.size() > 1) {
+                            getColors().coloredLegacy(sender, "&cA total of &3" + partial.size() + " &cgenerators match the term &e" + args[0]);
+                            return true;
+                        } else {
+                            getColors().coloredLegacy(sender, "&cInvalid generator &e" + args[0] + "&c.");
+                            return true;
+                        }
                     }
                     
                     if (!generator.isInitialized()) {
@@ -513,7 +572,16 @@ public class BedwarsCommand extends StarCommand<NexusBedWarsPlugin> {
                         return true;
                     }
                     
-                    getColors().coloredLegacy(sender, "&eThe generator &b" + generator.getKey() + " &ewas upgraded to &b" + generator.getTierName());
+                    Key fullKey = generator.getKey();
+                    
+                    for (Map.Entry<Key, BedwarsGenerator> entry : NexusBedWarsPlugin.GENERATORS.entrySet()) {
+                        if (entry.getValue() == generator) {
+                            fullKey = entry.getKey();
+                            break;
+                        }
+                    }
+                    
+                    getColors().coloredLegacy(sender, "&eThe generator &b" + fullKey + " &ewas upgraded to &b" + generator.getTierName());
                     return true;
                 };
                 
