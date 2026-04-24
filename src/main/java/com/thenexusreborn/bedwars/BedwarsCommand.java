@@ -562,11 +562,6 @@ public class BedwarsCommand extends StarCommand<NexusBedWarsPlugin> {
                         return true;
                     }
                     
-                    if (!generator.isRunning()) {
-                        getColors().coloredLegacy(sender, "&cThe generator &e" + generator.getKey() + " &cis not running");
-                        return true;
-                    }
-                    
                     if (!generator.upgrade()) {
                         getColors().coloredLegacy(sender, "&cThe generator &e" + generator.getKey() + " &ccould not be upgraded");
                         return true;
