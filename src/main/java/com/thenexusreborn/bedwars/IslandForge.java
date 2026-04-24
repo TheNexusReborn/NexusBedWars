@@ -3,8 +3,17 @@ package com.thenexusreborn.bedwars;
 import com.stardevllc.minecraft.Cuboid;
 import com.stardevllc.minecraft.Position;
 import com.stardevllc.stargenerators.model.listener.ItemPickupListener;
+import com.stardevllc.starlib.helper.StringHelper;
+import com.stardevllc.starlib.time.TimeUnit;
+import eu.decentsoftware.holograms.api.DHAPI;
+import eu.decentsoftware.holograms.api.holograms.Hologram;
+import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+
+import java.text.DecimalFormat;
+import java.util.LinkedList;
+import java.util.List;
 
 public class IslandForge extends BedwarsGenerator {
     
@@ -108,6 +117,31 @@ public class IslandForge extends BedwarsGenerator {
         addEntry(Resource.GOLD.get(), spawnPos, this.tier.getGoldCooldown(), this.tier.getGoldMaxItems(), this.tier.getGoldStackSize());
         addEntry(Resource.EMERALD.get(), spawnPos, this.tier.getEmeraldCooldown(), this.tier.getEmeraldMaxItems(), this.tier.getEmeraldStackSize());
         addPickupListener(PICKUP_LISTENER);
+    }
+    
+    @Override
+    protected Hologram createHologram() {
+        if (this.hologram != null) {
+            return hologram;
+        }
+        Position position = getSpawnPosition(Resource.IRON.getKey());
+        Location location = new Location(world, position.getBlockX() + 0.5, position.getBlockY() + 3, position.getBlockZ() + 0.5);
+        return this.hologram = DHAPI.createHologram("forge_" + this.getKey().toString().replace(":", "_"), location, List.of("", "", "", "", ""));
+    }
+    
+    @Override
+    protected List<String> getHologramLines() {
+        DecimalFormat format = new DecimalFormat("0.0");
+        List<String> lines = new LinkedList<>();
+        lines.add("&bForge");
+        lines.add("&eTier &c" + StringHelper.titlize(getTier().name()));
+        lines.add("&7Iron &eNext Spawn in &c" + format.format(TimeUnit.MILLISECONDS.toSeconds(getNextSpawn(Resource.IRON.get()))) + " &eseconds");
+        lines.add("&6Gold &eNext Spawn in &c" + format.format(TimeUnit.MILLISECONDS.toSeconds(getNextSpawn(Resource.GOLD.get()))) + " &eseconds");
+        if (tier.emerald.cooldown > 0) {
+            lines.add("&2Emerald &eNext Spawn in &c" + format.format(TimeUnit.MILLISECONDS.toSeconds(getNextSpawn(Resource.EMERALD.get()))) + " &eseconds");
+        }
+        
+        return lines;
     }
     
     public void addPickupListener(ItemPickupListener listener) {
