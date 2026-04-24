@@ -748,8 +748,6 @@ public class BedwarsCommand extends StarCommand<NexusBedWarsPlugin> {
                                 return true;
                             }
                             
-                            TeamInstance teamInstance = bwServer.getTeamInstance(team);
-                            
                             if (!(args.length > 0)) {
                                 getColors().coloredLegacy(sender, "&cYou must provide a player to add.");
                                 return true;
@@ -761,15 +759,34 @@ public class BedwarsCommand extends StarCommand<NexusBedWarsPlugin> {
                                 return true;
                             }
                             
-                            if (teamInstance.getPlayers().contains(target.getUniqueId())) {
-                                getColors().coloredLegacy(player, "&c" + player.getName() + " is already a member of the team " + team.getName().toUpperCase());
-                                return true;
+                            var result = bwServer.addToTeam(target, team);
+                            
+                            switch (result) {
+                                case AddToTeamResult.Success success -> {
+                                    if (target != player) {
+                                        if (success.previousTeam() != null) {
+                                            getColors().coloredLegacy(player, "&e" + target.getName() + " has been removed from the team " + success.previousTeam().getChatColor() + success.previousTeam().getName().toUpperCase());
+                                        }
+                                        
+                                        getColors().coloredLegacy(player, "&e" + target.getName() + " has been added to the team " + team.getChatColor() + team.getName().toUpperCase());
+                                    }
+                                    
+                                    if (success.previousTeam() != null) {
+                                        getColors().coloredLegacy(target, "&eYou have been removed from the team " + success.previousTeam().getChatColor() + success.previousTeam().getName() + " &eby &b" + player.getName());
+                                    }
+                                    
+                                    getColors().coloredLegacy(target, "&eYou have been added to the team " + team.getChatColor() + team.getName() + " &eby &b" + player.getName());
+                                }
+                                case AddToTeamResult.AlreadyInTeam alreadyInTeam -> {
+                                    getColors().coloredLegacy(player, "&c" + target.getName() + " is already a member of the team " + team.getName().toUpperCase());
+                                    return true;
+                                }
+                                case AddToTeamResult.NoBWPlayerData noBWPlayerData -> {
+                                    getColors().coloredLegacy(player, "&c" + target.getName() + " does not have player data on this server.");
+                                    return true;
+                                }
                             }
                             
-                            
-                            teamInstance.addPlayer(target);
-                            getColors().coloredLegacy(player, "&e" + player.getName() + " has been added to the team " + team.getChatColor() + team.getName().toUpperCase());
-                            getColors().coloredLegacy(target, "&eYou have been added to the team " + team.getChatColor() + team.getName() + " &eby &b" + player.getName());
                             return true;
                         };
                         
@@ -841,14 +858,26 @@ public class BedwarsCommand extends StarCommand<NexusBedWarsPlugin> {
                                 return true;
                             }
                             
-                            if (!teamInstance.getPlayers().contains(target.getUniqueId())) {
-                                getColors().coloredLegacy(player, "&c" + player.getName() + " is not a member of the team " + team.getName().toUpperCase());
-                                return true;
+                            var result = bwServer.removeFromTeam(target, team);
+                            
+                            switch (result) {
+                                case RemoveFromTeamResult.NoBWPlayerData noBWPlayerData -> {
+                                    getColors().coloredLegacy(player, "&c" + target.getName() + " does not have player data on this server.");
+                                    return true;
+                                }
+                                case RemoveFromTeamResult.NotInTeam notInTeam -> {
+                                    getColors().coloredLegacy(player, "&c" + target.getName() + " is not a member of the team " + team.getName().toUpperCase());
+                                    return true;
+                                }
+                                case RemoveFromTeamResult.Success success -> {
+                                    if (target != player) {
+                                        getColors().coloredLegacy(player, "&e" + target.getName() + " has been removed from the team " + team.getChatColor() + team.getName().toUpperCase());
+                                    }
+                                    
+                                    getColors().coloredLegacy(target, "&eYou have been removed from the team " + team.getChatColor() + team.getName() + " &eby &b" + player.getName());
+                                }
                             }
                             
-                            teamInstance.removePlayer(target);
-                            getColors().coloredLegacy(player, "&e" + player.getName() + " has been removed from the team " + team.getChatColor() + team.getName().toUpperCase());
-                            getColors().coloredLegacy(target, "&eYou have been removed from the team " + team.getChatColor() + team.getName() + " &eby &b" + player.getName());
                             return true;
                         };
                         
