@@ -1075,45 +1075,40 @@ public class BedwarsCommand extends StarCommand<NexusBedWarsPlugin> {
                     public SetTierCmd(GameTeam team) {
                         super(ForgeCmd.this.plugin, ForgeCmd.this, 3, "settier", "Sets the tier of the team's forge", "nexusbedwars.command.teams." + team.getName().toLowerCase() + ".forge.settier");
                         
-                        this.executor = (plugin, sender, label, args, flagResults) -> {
-                            Player player = (Player) sender;
-                            NexusPlayer nexusPlayer = NexusReborn.getPlayerManager().getNexusPlayer(player.getUniqueId());
-                            if (nexusPlayer == null) {
-                                return true;
-                            }
+                        for (IslandForge.Tier tier : IslandForge.Tier.values()) {
+                            this.subCommands.add(new TierCmd(team, tier));
+                        }
+                    }
+                    
+                    private class TierCmd extends SubCommand<NexusBedWarsPlugin> {
+                        public TierCmd(GameTeam team, IslandForge.Tier tier) {
+                            super(ForgeCmd.this.plugin, ForgeCmd.this, 4, tier.name().toLowerCase(), tier.name() + " for team " + team.getName(), "nexusbedwars.command.teams." + team.getName().toLowerCase() + ".forge.settier." + tier.name().toLowerCase());
                             
-                            NexusServer server = nexusPlayer.getServer();
-                            if (!(server instanceof BWVirtualServer bwServer)) {
-                                getColors().coloredLegacy(player, "&cYou are not on a Bed Wars Server");
+                            this.executor = (plugin, sender, label, args, flags) -> {
+                                Player player = (Player) sender;
+                                NexusPlayer nexusPlayer = NexusReborn.getPlayerManager().getNexusPlayer(player.getUniqueId());
+                                if (nexusPlayer == null) {
+                                    return true;
+                                }
+                                
+                                NexusServer server = nexusPlayer.getServer();
+                                if (!(server instanceof BWVirtualServer bwServer)) {
+                                    getColors().coloredLegacy(player, "&cYou are not on a Bed Wars Server");
+                                    return true;
+                                }
+                                
+                                TeamInstance teamInstance = bwServer.getTeamInstance(team);
+                                IslandForge forge = teamInstance.getForge();
+                                if (forge == null) {
+                                    getColors().coloredLegacy(player, "&cThat team does not have their forge initialized.");
+                                    return true;
+                                }
+                                
+                                forge.setTier(tier);
+                                getColors().coloredLegacy(sender, "&eYou set " + team.getChatColor() + team.getName().toUpperCase() + "&e's forge to &e" + tier.name() + "&e.");
                                 return true;
-                            }
-                            
-                            TeamInstance teamInstance = bwServer.getTeamInstance(team);
-                            IslandForge forge = teamInstance.getForge();
-                            if (forge == null) {
-                                getColors().coloredLegacy(player, "&cThat team does not have their forge initialized.");
-                                return true;
-                            }
-                            
-                            if (!(args.length > 0)) {
-                                getColors().coloredLegacy(player, "&cYou must provide a tier name");
-                                return true;
-                            }
-                            
-                            IslandForge.Tier tier;
-                            try {
-                                tier = IslandForge.Tier.valueOf(args[0].toUpperCase());
-                            } catch (Exception e) {
-                                getColors().coloredLegacy(player, "&cInvalid Tier Name: " + args[0]);
-                                return true;
-                            }
-                            
-                            forge.setTier(tier);
-                            getColors().coloredLegacy(sender, "&eYou set " + team.getChatColor() + team.getName().toUpperCase() + "&e's forge to &e" + tier.name() + "&e.");
-                            return true;
-                        };
-                        
-                        //TODO Tab Completion for the tier
+                            };
+                        }
                     }
                 }
             }
