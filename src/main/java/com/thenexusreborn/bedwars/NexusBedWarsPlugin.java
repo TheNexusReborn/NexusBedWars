@@ -1,13 +1,14 @@
 package com.thenexusreborn.bedwars;
 
-import com.stardevllc.minecraft.registry.PluginRegistry;
 import com.stardevllc.stargenerators.StarGenerators;
 import com.stardevllc.starlib.collections.listmap.ArrayListMap;
 import com.stardevllc.starlib.collections.listmap.ListMap;
 import com.stardevllc.starlib.objects.key.Key;
 import com.stardevllc.starlib.objects.key.Keys;
+import com.stardevllc.starlib.registry.HashRegistry;
 import com.stardevllc.starlib.registry.IRegistry;
-import com.stardevllc.starlib.repository.*;
+import com.stardevllc.starlib.repository.HashRepository;
+import com.stardevllc.starlib.repository.IRepository;
 import com.thenexusreborn.api.util.NetworkType;
 import com.thenexusreborn.nexuscore.NexusCore;
 import com.thenexusreborn.nexuscore.api.NexusSpigotPlugin;
@@ -28,15 +29,16 @@ public class NexusBedWarsPlugin extends NexusSpigotPlugin implements Listener {
     private final Map<Key, Game> games = new HashMap<>();
     private final ListMap<Key, TeamInstance> teamInstances = new ArrayListMap<>();
     
-    public static final IRegistry<BedwarsGenerator> GENERATORS = PluginRegistry.builder(BedwarsGenerator.class)
-            .withKey(Keys.of("bedwars:generators"))
+    public static final IRegistry<BedwarsGenerator> GENERATORS = HashRegistry.newBuilder(BedwarsGenerator.class)
+            .withKey(Keys.of("nbw:generators"))
             .withName("Bedwars Generators")
             .withParent(StarGenerators.ITEM_GENERATORS)
+            .appendKeyToObjectToParent()
             .build();
     
     private final IRepository<UUID, BWPlayer> players = HashRepository.newBuilder(UUID.class, BWPlayer.class)
-            .withKey(Keys.of("bw:players"))
-            .withName("BW Players")
+            .withKey(Keys.of("nbw:players"))
+            .withName("BedWars Players")
             .withLoader(BWPlayer::new)
             .build();
     

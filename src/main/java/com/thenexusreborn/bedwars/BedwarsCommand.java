@@ -57,40 +57,39 @@ public class BedwarsCommand extends StarCommand<NexusBedWarsPlugin> {
     }
     
     private class GeneratorsCmd extends SubCommand<NexusBedWarsPlugin> {
-        // The commands will work with most BedwarsGenerators, I just don't have that in place yet
-        // But these registries will exist to help separate them from the game based generators
-        // The startall and stopall commands will only work on generators created by the command
-        // The upgrade command will work on all (when the full systems are in place)
-        
-        private final IRegistry<BedwarsGenerator> REGISTRY = PluginRegistry.builder(BedwarsGenerator.class)
-                .withKey(Keys.of("bedwarscmd_gens"))
+        private final IRegistry<BedwarsGenerator> REGISTRY = HashRegistry.newBuilder(BedwarsGenerator.class)
+                .withKey(Keys.of("cmd"))
                 .withName("Bedwars Command Generators")
                 .withParent(NexusBedWarsPlugin.GENERATORS)
+                .appendKeyToObjectToParent()
                 .build();
         
-        private final IRegistry<IslandForge> FORGE_REGISTRY = PluginRegistry.builder(IslandForge.class)
-                .withKey(Keys.of("bedwarscmd_forges"))
+        private final IRegistry<IslandForge> FORGE_REGISTRY = HashRegistry.newBuilder(IslandForge.class)
+                .withKey(Keys.of("forge"))
                 .withName("Bedwars Cmd Forges")
                 .withParent(REGISTRY)
+                .appendKeyToObjectToParent()
                 .build();
         
-        private final Registerer<IslandForge> FORGE_REGISTERER = PluginRegisterer.create(FORGE_REGISTRY, BedwarsCommand.this.plugin);
+        private final Registerer<IslandForge> FORGE_REGISTERER = Registerer.create(FORGE_REGISTRY);
         
-        private final IRegistry<DiamondGenerator> DIAMOND_REGISTRY = PluginRegistry.builder(DiamondGenerator.class)
-                .withKey(Keys.of("bedwarscmd_diamond"))
+        private final IRegistry<DiamondGenerator> DIAMOND_REGISTRY = HashRegistry.newBuilder(DiamondGenerator.class)
+                .withKey(Keys.of("diamond"))
                 .withName("Bedwars Cmd Diamond Gens")
                 .withParent(REGISTRY)
+                .appendKeyToObjectToParent()
                 .build();
         
-        private final Registerer<DiamondGenerator> DIAMOND_REGISTERER = PluginRegisterer.create(DIAMOND_REGISTRY, BedwarsCommand.this.plugin);
+        private final Registerer<DiamondGenerator> DIAMOND_REGISTERER = Registerer.create(DIAMOND_REGISTRY);
         
-        private final IRegistry<EmeraldGenerator> EMERALD_REGISTRY = PluginRegistry.builder(EmeraldGenerator.class)
-                .withKey(Keys.of("bedwarscmd_emerald"))
+        private final IRegistry<EmeraldGenerator> EMERALD_REGISTRY = HashRegistry.newBuilder(EmeraldGenerator.class)
+                .withKey(Keys.of("emerald"))
                 .withName("Bedwars Cmd Emerald Gens")
                 .withParent(REGISTRY)
+                .appendKeyToObjectToParent()
                 .build();
         
-        private final Registerer<EmeraldGenerator> EMERALD_REGISTERER = PluginRegisterer.create(EMERALD_REGISTRY, BedwarsCommand.this.plugin);
+        private final Registerer<EmeraldGenerator> EMERALD_REGISTERER = Registerer.create(EMERALD_REGISTRY);
         
         public GeneratorsCmd() {
             super(BedwarsCommand.this.plugin, BedwarsCommand.this, 0, "generators", "Manage the generators", "nexusbedwars.command.generators", "gens");
@@ -133,7 +132,7 @@ public class BedwarsCommand extends StarCommand<NexusBedWarsPlugin> {
                             return true;
                         }
                         
-                        PluginKey key = PluginKey.of(plugin, "cmd_" + name + "_" + number);
+                        Key key = Keys.of(number);
                         if (registry.containsKey(key)) {
                             getColors().coloredLegacy(sender, "&cA generator already exists of the type &e" + name + " &cand the number &e" + number);
                             return true;
@@ -152,14 +151,14 @@ public class BedwarsCommand extends StarCommand<NexusBedWarsPlugin> {
                         
                         generator.init(player.getWorld());
                         
-                        getColors().coloredLegacy(sender, "&eCreated the &d" + name + " &egenerator &b" + key.getKey());
+                        getColors().coloredLegacy(sender, "&eCreated the &d" + name + " &egenerator &b" + key);
                         return true;
                     };
                 }
                 
                 abstract BedwarsGenerator createGenerator(Position position, int number);
                 
-                abstract boolean registerGenerator(PluginKey key, BedwarsGenerator generator);
+                abstract boolean registerGenerator(Key key, BedwarsGenerator generator);
             }
             
             private final class CreateDiamond extends SingleResource {
@@ -173,7 +172,7 @@ public class BedwarsCommand extends StarCommand<NexusBedWarsPlugin> {
                 }
                 
                 @Override
-                boolean registerGenerator(PluginKey key, BedwarsGenerator generator) {
+                boolean registerGenerator(Key key, BedwarsGenerator generator) {
                     if (!(generator instanceof DiamondGenerator diamondGenerator)) {
                         return false;
                     }
@@ -193,7 +192,7 @@ public class BedwarsCommand extends StarCommand<NexusBedWarsPlugin> {
                 }
                 
                 @Override
-                boolean registerGenerator(PluginKey key, BedwarsGenerator generator) {
+                boolean registerGenerator(Key key, BedwarsGenerator generator) {
                     if (!(generator instanceof EmeraldGenerator emeraldGenerator)) {
                         return false;
                     }
@@ -217,7 +216,7 @@ public class BedwarsCommand extends StarCommand<NexusBedWarsPlugin> {
                         
                         String name = args[0];
                         
-                        PluginKey key = PluginKey.of(plugin, "cmd_forge_" + name);
+                        Key key = Keys.of(name);
                         if (FORGE_REGISTRY.containsKey(key)) {
                             getColors().coloredLegacy(sender, "&cA generator already exists of the type &eforge &cand the name &e" + name);
                             return true;
@@ -244,7 +243,7 @@ public class BedwarsCommand extends StarCommand<NexusBedWarsPlugin> {
                             return true;
                         }
                         
-                        getColors().coloredLegacy(sender, "&eCreated the &dforge &b" + key.getKey());
+                        getColors().coloredLegacy(sender, "&eCreated the &dforge &b" + key);
                         return true;
                     };
                 }
@@ -274,7 +273,7 @@ public class BedwarsCommand extends StarCommand<NexusBedWarsPlugin> {
                 
                 this.executor = (plugin, sender, label, args, flagResults) -> {
                     int successfulGenerators = 0;
-                    for (BedwarsGenerator generator : REGISTRY) {
+                    for (BedwarsGenerator generator : NexusBedWarsPlugin.GENERATORS) {
                         if (!generator.isInitialized()) {
                             continue;
                         }
@@ -301,7 +300,7 @@ public class BedwarsCommand extends StarCommand<NexusBedWarsPlugin> {
                     Player player = (Player) sender;
                     
                     int successfulGenerators = 0;
-                    for (BedwarsGenerator generator : REGISTRY) {
+                    for (BedwarsGenerator generator : NexusBedWarsPlugin.GENERATORS) {
                         if (!generator.isInitialized()) {
                             generator.init(player.getWorld());
                         }
@@ -332,7 +331,7 @@ public class BedwarsCommand extends StarCommand<NexusBedWarsPlugin> {
                     
                     Player player = (Player) sender;
                     
-                    PluginKey key = PluginKey.of(plugin, args[0]);
+                    Key key = Keys.of(args[0]);
                     BedwarsGenerator generator = NexusBedWarsPlugin.GENERATORS.get(key);
                     if (generator == null) {
                         getColors().coloredLegacy(sender, "&cInvalid generator id &e" + args[0] + "&c.");
@@ -367,7 +366,7 @@ public class BedwarsCommand extends StarCommand<NexusBedWarsPlugin> {
                         return true;
                     }
                     
-                    PluginKey key = PluginKey.of(plugin, args[0]);
+                    Key key = Keys.of(args[0]);
                     BedwarsGenerator generator = NexusBedWarsPlugin.GENERATORS.get(key);
                     if (generator == null) {
                         getColors().coloredLegacy(sender, "&cInvalid generator id &e" + args[0] + "&c.");
@@ -403,7 +402,7 @@ public class BedwarsCommand extends StarCommand<NexusBedWarsPlugin> {
                         return true;
                     }
                     
-                    PluginKey key = PluginKey.of(plugin, args[0]);
+                    Key key = Keys.of(args[0]);
                     BedwarsGenerator generator = NexusBedWarsPlugin.GENERATORS.get(key);
                     if (generator == null) {
                         getColors().coloredLegacy(sender, "&cInvalid generator id &e" + args[0] + "&c.");
