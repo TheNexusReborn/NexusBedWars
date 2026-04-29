@@ -67,11 +67,11 @@ public class NexusBedWarsPlugin extends NexusSpigotPlugin implements Listener {
         cmd.setExecutor(bedwarsCommand);
         cmd.setTabCompleter(bedwarsCommand);
         
-        getServer().getScheduler().runTaskTimer(this, () -> {
-            for (Player player : getServer().getOnlinePlayers()) {
-                Tool.checkTools(player);
-            }
-        }, 1L, 20L);
+//        getServer().getScheduler().runTaskTimer(this, () -> {
+//            for (Player player : getServer().getOnlinePlayers()) {
+//                Tool.checkTools(player);
+//            }
+//        }, 1L, 20L);
         
         getServer().getScheduler().runTaskTimer(this, () -> {
             for (BedwarsGenerator generator : GENERATORS) {
