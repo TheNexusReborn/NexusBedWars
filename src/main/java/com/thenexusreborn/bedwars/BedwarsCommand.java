@@ -115,10 +115,12 @@ public class BedwarsCommand extends StarCommand<NexusBedWarsPlugin> {
                 public SingleResource(String name, IRegistry<? extends BedwarsGenerator> registry) {
                     super(CreateCmd.this.plugin, CreateCmd.this, 2, name, "Create a " + StringHelper.titlize(name) + " generator", "nexusbedwars.command.generators.create." + name);
                     
-                    this.executor = (plugin, sender, label, args, flagResults) -> {
+                    this.executor = context -> {
+                        CommandSender sender = context.sender();
                         Player player = (Player) sender;
                         Position position = new Position(player.getLocation().getBlockX(), player.getLocation().getBlockY(), player.getLocation().getBlockZ());
                         
+                        String[] args = context.args();
                         if (!(args.length > 0)) {
                             getColors().coloredLegacy(sender, "&cYou must provide a number");
                             return true;
@@ -213,10 +215,12 @@ public class BedwarsCommand extends StarCommand<NexusBedWarsPlugin> {
                 public CreateForge() {
                     super(CreateCmd.this.plugin, CreateCmd.this, 2, "forge", "Create a forge generator", "nexusbedwars.command.generators.create.forge");
                     
-                    this.executor = (plugin, sender, label, args, flagResults) -> {
+                    this.executor = context -> {
+                        CommandSender sender = context.sender();
                         Player player = (Player) sender;
                         Position position = new Position(player.getLocation().getBlockX(), player.getLocation().getBlockY(), player.getLocation().getBlockZ());
                         
+                        String[] args = context.args();
                         if (!(args.length > 0)) {
                             getColors().coloredLegacy(sender, "&cYou must provide a name");
                             return true;
@@ -267,7 +271,8 @@ public class BedwarsCommand extends StarCommand<NexusBedWarsPlugin> {
             }
         }
         
-        final Completer<NexusBedWarsPlugin> generatorCompleter = (plugin, sender, label, args, flagResults) -> {
+        final Completer generatorCompleter = context -> {
+            String[] args = context.args();
             List<String> completions = new ArrayList<>();
             if (args.length == 1) {
                 for (Key key : NexusBedWarsPlugin.GENERATORS.keySet()) {
@@ -288,9 +293,11 @@ public class BedwarsCommand extends StarCommand<NexusBedWarsPlugin> {
             public UpgradeAllCmd() {
                 super(BedwarsCommand.this.plugin, GeneratorsCmd.this, 1, "upgradeall", "Upgrades all generators", "nexusbedwars.command.generators.startall");
                 
-                this.executor = (plugin, sender, label, args, flagResults) -> {
+                this.executor = context -> {
+                    CommandSender sender = context.sender();
                     Player player = (Player) sender;
                     
+                    String[] args = context.args();
                     Predicate<BedwarsGenerator> filter = new GeneratorFilter(args);
                     
                     int successful = 0, notMatchFilter = 0, notInitialized = 0, cantUpgrade = 0;
@@ -333,8 +340,9 @@ public class BedwarsCommand extends StarCommand<NexusBedWarsPlugin> {
             public StopAllCmd() {
                 super(BedwarsCommand.this.plugin, GeneratorsCmd.this, 1, "stopall", "Stops all generators", "nexusbedwars.command.generators.stopall");
                 
-                this.executor = (plugin, sender, label, args, flagResults) -> {
-                    
+                this.executor = context -> {
+                    CommandSender sender = context.sender();
+                    String[] args = context.args();
                     Predicate<BedwarsGenerator> filter = new GeneratorFilter(args);
                     
                     int successful = 0, notMatchFilter = 0, notInitialized = 0, notRunning = 0;
@@ -380,9 +388,11 @@ public class BedwarsCommand extends StarCommand<NexusBedWarsPlugin> {
             public StartAllCmd() {
                 super(BedwarsCommand.this.plugin, GeneratorsCmd.this, 1, "startall", "Starts all generators", "nexusbedwars.command.generators.startall");
                 
-                this.executor = (plugin, sender, label, args, flagResults) -> {
+                this.executor = context -> {
+                    CommandSender sender = context.sender();
                     Player player = (Player) sender;
                     
+                    String[] args = context.args();
                     Predicate<BedwarsGenerator> filter = new GeneratorFilter(args);
                     
                     int successful = 0, notMatchFilter = 0, notInitialized = 0, alreadyRunning = 0;
@@ -428,7 +438,9 @@ public class BedwarsCommand extends StarCommand<NexusBedWarsPlugin> {
             public StartCmd() {
                 super(BedwarsCommand.this.plugin, GeneratorsCmd.this, 1, "start", "Starts a generator", "nexusbedwars.command.generators.start");
                 
-                this.executor = (plugin, sender, label, args, flagResults) -> {
+                this.executor = context -> {
+                    CommandSender sender = context.sender();
+                    String[] args = context.args();
                     if (!(args.length > 0)) {
                         getColors().coloredLegacy(sender, "&cYou must provide a generator id");
                         return true;
@@ -483,7 +495,9 @@ public class BedwarsCommand extends StarCommand<NexusBedWarsPlugin> {
             public StopCmd() {
                 super(BedwarsCommand.this.plugin, GeneratorsCmd.this, 1, "stop", "Stops a generator", "nexusbedwars.command.generators.stop");
                 
-                this.executor = (plugin, sender, label, args, flagResults) -> {
+                this.executor = context -> {
+                    CommandSender sender = context.sender();
+                    String[] args = context.args();
                     if (!(args.length > 0)) {
                         getColors().coloredLegacy(sender, "&cYou must provide a generator id");
                         return true;
@@ -536,7 +550,9 @@ public class BedwarsCommand extends StarCommand<NexusBedWarsPlugin> {
             public UpgradeCmd() {
                 super(BedwarsCommand.this.plugin, GeneratorsCmd.this, 1, "upgrade", "Upgrades a generator", "nexusbedwars.command.generators.upgrade");
                 
-                this.executor = (plugin, sender, label, args, flagResults) -> {
+                this.executor = context -> {
+                    CommandSender sender = context.sender();
+                    String[] args = context.args();
                     if (!(args.length > 0)) {
                         getColors().coloredLegacy(sender, "&cYou must provide a generator id");
                         return true;
@@ -593,7 +609,8 @@ public class BedwarsCommand extends StarCommand<NexusBedWarsPlugin> {
             this.subCommands.add(new DowngradeCmd());
         }
         
-        public static Completer<NexusBedWarsPlugin> completer = (p, sender, label, args, flagResults) -> {
+        public static Completer completer = context -> {
+            String[] args = context.args();
             List<String> completions = new ArrayList<>();
             if (args.length == 1) {
                 for (Tool tool : Tool.REGISTRY) {
@@ -609,7 +626,9 @@ public class BedwarsCommand extends StarCommand<NexusBedWarsPlugin> {
         private class GetCmd extends SubCommand<NexusBedWarsPlugin> {
             public GetCmd() {
                 super(BedwarsCommand.this.plugin, ToolsCmd.this, 1, "get", "Get a tool", "nexusbedwars.command.tools.get");
-                this.executor = (p, sender, label, args, flagResults) -> {
+                this.executor = context -> {
+                    CommandSender sender = context.sender();
+                    String[] args = context.args();
                     Tool tool = Tool.REGISTRY.get(args[0]);
                     if (tool == null) {
                         StarColors.coloredMessage(sender, "&cInvalid tool");
@@ -639,7 +658,9 @@ public class BedwarsCommand extends StarCommand<NexusBedWarsPlugin> {
         private class UpgradeCmd extends SubCommand<NexusBedWarsPlugin> {
             public UpgradeCmd() {
                 super(BedwarsCommand.this.plugin, ToolsCmd.this, 1, "upgrade", "Upgrade a tool", "nexusbedwars.command.tools.upgrade");
-                this.executor = (p, sender, label, args, flagResults) -> {
+                this.executor = context -> {
+                    CommandSender sender = context.sender();
+                    String[] args = context.args();
                     Tool tool = Tool.REGISTRY.get(args[0]);
                     if (tool == null) {
                         StarColors.coloredMessage(sender, "&cInvalid tool");
@@ -669,7 +690,9 @@ public class BedwarsCommand extends StarCommand<NexusBedWarsPlugin> {
         private class DowngradeCmd extends SubCommand<NexusBedWarsPlugin> {
             public DowngradeCmd() {
                 super(BedwarsCommand.this.plugin, ToolsCmd.this, 1, "downgrade", "Downgrade a tool", "nexusbedwars.command.tools.downgrade");
-                this.executor = (p, sender, label, args, flagResults) -> {
+                this.executor = context -> {
+                    CommandSender sender = context.sender();
+                    String[] args = context.args();
                     Tool tool = Tool.REGISTRY.get(args[0]);
                     if (tool == null) {
                         StarColors.coloredMessage(sender, "&cInvalid tool");
@@ -717,7 +740,7 @@ public class BedwarsCommand extends StarCommand<NexusBedWarsPlugin> {
         private class TeamCmd extends SubCommand<NexusBedWarsPlugin> {
             public TeamCmd(GameTeam team) {
                 super(TeamsCmd.this.plugin, TeamsCmd.this, 1, team.getName().toLowerCase(), "Manage the team " + team.getName().toLowerCase(), "nexusbedwars.command.teams." + team.getName().toLowerCase());
-                this.subCommands.add(new PlayersCmd(team));
+                this.subCommands.add(new TeamPlayersCmd(team));
                 this.subCommands.add(new UpgradesCmd(team));
                 this.subCommands.add(new ForgeCmd(team));
                 this.subCommands.add(new RegionCmd(team));
@@ -790,7 +813,9 @@ public class BedwarsCommand extends StarCommand<NexusBedWarsPlugin> {
                             return true;
                         };
                         
-                        this.completer = (plugin, sender, label, args, flagResults) -> {
+                        this.completer = context -> {
+                            CommandSender sender = context.sender();
+                            String[] args = context.args();
                             if (args.length != 1) {
                                 return List.of();
                             }
@@ -832,7 +857,9 @@ public class BedwarsCommand extends StarCommand<NexusBedWarsPlugin> {
                         super(PlayersCmd.this.plugin, PlayersCmd.this, 3, "remove", "Removes a player from the team " + team.getName(), "nexusbedwars.command.teams." + team.getName().toLowerCase() + ".players.remove");
                         this.playerOnly = true;
                         
-                        this.executor = (plugin, sender, label, args, flagResults) -> {
+                        this.executor = context -> {
+                            CommandSender sender = context.sender();
+                            String[] args = context.args();
                             Player player = (Player) sender;
                             NexusPlayer nexusPlayer = NexusReborn.getPlayerManager().getNexusPlayer(player.getUniqueId());
                             if (nexusPlayer == null) {
@@ -881,7 +908,9 @@ public class BedwarsCommand extends StarCommand<NexusBedWarsPlugin> {
                             return true;
                         };
                         
-                        this.completer = (plugin, sender, label, args, flagResults) -> {
+                        this.completer = context -> {
+                            CommandSender sender = context.sender();
+                            String[] args = context.args();
                             if (args.length != 1) {
                                 return List.of();
                             }
@@ -935,7 +964,9 @@ public class BedwarsCommand extends StarCommand<NexusBedWarsPlugin> {
                         public UpgradeCmd(GameTeam team, TeamUpgrade upgrade) {
                             super(UpgradeTypeCmd.this.plugin, UpgradeTypeCmd.this, 4, "upgrade", "Upgrades the team " + team.getName() + " with the upgrade " + upgrade.getName(), "nexusbedwars.command.teams." + team.getName().toLowerCase() + ".upgrades." + upgrade.getName().toLowerCase() + ".upgrade");
                             
-                            this.executor = (plugin, sender, label, args, flagResults) -> {
+                            this.executor = context -> {
+                                CommandSender sender = context.sender();
+                                String[] args = context.args();
                                 Player player = (Player) sender;
                                 NexusPlayer nexusPlayer = NexusReborn.getPlayerManager().getNexusPlayer(player.getUniqueId());
                                 if (nexusPlayer == null) {
@@ -969,7 +1000,9 @@ public class BedwarsCommand extends StarCommand<NexusBedWarsPlugin> {
                         public SetLevelCmd(GameTeam team, TeamUpgrade upgrade) {
                             super(UpgradeTypeCmd.this.plugin, UpgradeTypeCmd.this, 4, "setlevel", "Sets the upgrade level of the team " + team.getName() + " with the upgrade " + upgrade.getName(), "nexusbedwars.command.teams." + team.getName().toLowerCase() + ".upgrades." + upgrade.getName().toLowerCase() + ".setlevel");
                             
-                            this.executor = (plugin, sender, label, args, flagResults) -> {
+                            this.executor = context -> {
+                                CommandSender sender = context.sender();
+                                String[] args = context.args();
                                 Player player = (Player) sender;
                                 NexusPlayer nexusPlayer = NexusReborn.getPlayerManager().getNexusPlayer(player.getUniqueId());
                                 if (nexusPlayer == null) {
@@ -1025,7 +1058,9 @@ public class BedwarsCommand extends StarCommand<NexusBedWarsPlugin> {
                     public InitCmd(GameTeam team) {
                         super(ForgeCmd.this.plugin, ForgeCmd.this, 3, "init", "Initialize the team's forge", "nexusbedwars.command.teams." + team.getName().toLowerCase() + ".forge.init");
                         
-                        this.executor = (plugin, sender, label, args, flagResults) -> {
+                        this.executor = context -> {
+                            CommandSender sender = context.sender();
+                            String[] args = context.args();
                             Player player = (Player) sender;
                             NexusPlayer nexusPlayer = NexusReborn.getPlayerManager().getNexusPlayer(player.getUniqueId());
                             if (nexusPlayer == null) {
@@ -1084,7 +1119,9 @@ public class BedwarsCommand extends StarCommand<NexusBedWarsPlugin> {
                         public TierCmd(GameTeam team, IslandForge.Tier tier) {
                             super(ForgeCmd.this.plugin, ForgeCmd.this, 4, tier.name().toLowerCase(), tier.name() + " for team " + team.getName(), "nexusbedwars.command.teams." + team.getName().toLowerCase() + ".forge.settier." + tier.name().toLowerCase());
                             
-                            this.executor = (plugin, sender, label, args, flags) -> {
+                            this.executor = context -> {
+                                CommandSender sender = context.sender();
+                                String[] args = context.args();
                                 Player player = (Player) sender;
                                 NexusPlayer nexusPlayer = NexusReborn.getPlayerManager().getNexusPlayer(player.getUniqueId());
                                 if (nexusPlayer == null) {
@@ -1123,7 +1160,9 @@ public class BedwarsCommand extends StarCommand<NexusBedWarsPlugin> {
                     public SetCmd(GameTeam team) {
                         super(RegionCmd.this.plugin, RegionCmd.this, 3, "set", "Sets the region to your current WorldEdit selection", "nexusbedwars.command.teams." + team.getName().toLowerCase() + ".region.set");
                         
-                        this.executor = (plugin, sender, label, args, flagResults) -> {
+                        this.executor = context -> {
+                            CommandSender sender = context.sender();
+                            String[] args = context.args();
                             Player player = (Player) sender;
                             NexusPlayer nexusPlayer = NexusReborn.getPlayerManager().getNexusPlayer(player.getUniqueId());
                             if (nexusPlayer == null) {
