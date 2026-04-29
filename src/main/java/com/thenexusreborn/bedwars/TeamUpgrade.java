@@ -39,9 +39,9 @@ public class TeamUpgrade implements Keyable {
             this.level = level;
         }
         
-        protected void applyEnchant(ItemStack itemStack) {
+        protected ItemStack applyEnchant(ItemStack itemStack) {
             if (itemStack == null) {
-                return;
+                return null;
             }
             
             ItemMeta itemMeta = itemStack.getItemMeta();
@@ -49,6 +49,7 @@ public class TeamUpgrade implements Keyable {
                 itemMeta.addEnchant(enchantment, level, false);
                 itemStack.setItemMeta(itemMeta);
             }
+            return itemStack;
         }
     }
     
@@ -59,10 +60,10 @@ public class TeamUpgrade implements Keyable {
         
         public void accept(Player p) {
             PlayerInventory inv = p.getInventory();
-            applyEnchant(inv.getHelmet());
-            applyEnchant(inv.getChestplate());
-            applyEnchant(inv.getLeggings());
-            applyEnchant(inv.getBoots());
+            inv.setHelmet(applyEnchant(inv.getHelmet()));
+            inv.setChestplate(applyEnchant(inv.getChestplate()));
+            inv.setLeggings(applyEnchant(inv.getLeggings()));
+            inv.setBoots(applyEnchant(inv.getBoots()));
         }
     }
     
@@ -73,7 +74,7 @@ public class TeamUpgrade implements Keyable {
         
         @Override
         public void accept(Player player) {
-            applyEnchant(player.getInventory().getBoots());
+            player.getInventory().setBoots(applyEnchant(player.getInventory().getBoots()));
         }
     }
     
@@ -85,7 +86,8 @@ public class TeamUpgrade implements Keyable {
                     .setCost(4, TeamMode.SOLO, TeamMode.DUOS)
                     .setCost(8, TeamMode.TRIOS, TeamMode.QUADS)
                     .playerConsumer(p -> {
-                        for (ItemStack itemStack : p.getInventory()) {
+                        for (int i = 0; i < p.getInventory().getSize(); i++) {
+                            ItemStack itemStack = p.getInventory().getItem(i);
                             if (itemStack == null) {
                                 continue;
                             }
@@ -94,6 +96,7 @@ public class TeamUpgrade implements Keyable {
                                 ItemMeta itemMeta = itemStack.getItemMeta();
                                 itemMeta.addEnchant(Enchantment.DAMAGE_ALL, 1, false);
                                 itemStack.setItemMeta(itemMeta);
+                                p.getInventory().setItem(i, itemStack);
                             }
                         }
                     }))
