@@ -130,6 +130,7 @@ public class Tool implements Item {
     }
     
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
+    //This method only modifies the index if the current item in PlayerTool is null as that should be -1 at that point
     public boolean hasTool(Player player) {
         PlayerTool playerTool = PLAYER_TOOLS.get(player.getUniqueId(), getKey());
         
@@ -142,11 +143,19 @@ public class Tool implements Item {
             return false;
         }
         
-        if (!player.getInventory().contains(playerTool.currentItem) && !(player.getItemOnCursor() != null && playerTool.currentItem.equals(player.getItemOnCursor()))) {
-            playerTool.currentItem = null;
-            playerTool.index = -1;
-            return false;
+        return player.getInventory().contains(playerTool.currentItem) || player.getItemOnCursor() != null && playerTool.currentItem.equals(player.getItemOnCursor());
+    }
+    
+    //This method resets the tool for the player
+    public boolean resetTool(Player player) {
+        PlayerTool playerTool = PLAYER_TOOLS.get(player.getUniqueId(), getKey());
+        
+        if (playerTool == null) {
+            return true;
         }
+        
+        playerTool.currentItem = null;
+        playerTool.index = -1;
         
         return true;
     }
@@ -216,7 +225,7 @@ public class Tool implements Item {
             //This just means that this is a new thing of tool, so it does nothing as it is before the base
             return false;
         } else {
-            //This means that the player had the base item already, and cannot go any further
+            //This means that the tool does not have any upgrades, and is just the base item
             if (getUpgrades().isEmpty()) {
                 return false;
             }
@@ -238,6 +247,19 @@ public class Tool implements Item {
         }
         
         return false;
+    }
+    
+    public boolean isBaseItem(Player player) {
+        if (player == null) {
+            return false;
+        }
+        
+        if (getUpgrades().isEmpty()) {
+            return true;
+        }
+        
+        PlayerTool playerTool = PLAYER_TOOLS.computeIfAbsent(player.getUniqueId(), getKey(), (u, tk) -> new PlayerTool());
+        return playerTool.currentItem == null || playerTool.index < 0;
     }
     
     public boolean upgrade(Player player) {
