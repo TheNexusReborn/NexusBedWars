@@ -1,4 +1,4 @@
-package com.thenexusreborn.bedwars;
+package com.thenexusreborn.bedwars.item;
 
 import com.stardevllc.minecraft.registry.PluginRegisterer;
 import com.stardevllc.minecraft.registry.PluginRegistry;
@@ -8,6 +8,7 @@ import com.stardevllc.stargenerators.model.ItemEntry;
 import com.stardevllc.starcore.ItemBuilders;
 import com.stardevllc.starlib.objects.key.Keys;
 import com.stardevllc.starlib.registry.*;
+import com.thenexusreborn.bedwars.NexusBedWarsPlugin;
 
 public final class Resource {
     public static final IRegistry<ItemEntry> REGISTRY = PluginRegistry.builder(ItemEntry.class)

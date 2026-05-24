@@ -1,5 +1,6 @@
-package com.thenexusreborn.bedwars;
+package com.thenexusreborn.bedwars.game;
 
+import com.thenexusreborn.bedwars.team.TeamInstance;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.PlayerInventory;

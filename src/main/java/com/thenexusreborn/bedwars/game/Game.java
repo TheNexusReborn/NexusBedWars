@@ -1,4 +1,4 @@
-package com.thenexusreborn.bedwars;
+package com.thenexusreborn.bedwars.game;
 
 import com.stardevllc.starlib.objects.key.Key;
 import com.stardevllc.starlib.objects.key.Keyable;

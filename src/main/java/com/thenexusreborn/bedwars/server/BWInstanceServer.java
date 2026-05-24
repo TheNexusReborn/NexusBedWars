@@ -1,7 +1,8 @@
-package com.thenexusreborn.bedwars;
+package com.thenexusreborn.bedwars.server;
 
 import com.thenexusreborn.api.player.NexusPlayer;
 import com.thenexusreborn.api.server.InstanceServer;
+import com.thenexusreborn.bedwars.NexusBedWarsPlugin;
 
 public class BWInstanceServer extends InstanceServer {
     public BWInstanceServer(NexusBedWarsPlugin bedwars, String name) {

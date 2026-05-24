@@ -1,4 +1,4 @@
-package com.thenexusreborn.bedwars;
+package com.thenexusreborn.bedwars.team;
 
 public enum TeamMode {
     SOLO,

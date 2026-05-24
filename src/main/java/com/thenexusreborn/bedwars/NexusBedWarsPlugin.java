@@ -1,8 +1,6 @@
 package com.thenexusreborn.bedwars;
 
 import com.stardevllc.stargenerators.StarGenerators;
-import com.stardevllc.starlib.collections.listmap.ArrayListMap;
-import com.stardevllc.starlib.collections.listmap.ListMap;
 import com.stardevllc.starlib.objects.key.Key;
 import com.stardevllc.starlib.objects.key.Keys;
 import com.stardevllc.starlib.registry.HashRegistry;
@@ -10,6 +8,17 @@ import com.stardevllc.starlib.registry.IRegistry;
 import com.stardevllc.starlib.repository.HashRepository;
 import com.stardevllc.starlib.repository.IRepository;
 import com.thenexusreborn.api.util.NetworkType;
+import com.thenexusreborn.bedwars.cmds.BedwarsCommand;
+import com.thenexusreborn.bedwars.game.Game;
+import com.thenexusreborn.bedwars.generator.BedwarsGenerator;
+import com.thenexusreborn.bedwars.hook.NexusHubHook;
+import com.thenexusreborn.bedwars.map.BedwarsMap;
+import com.thenexusreborn.bedwars.map.YamlMapManager;
+import com.thenexusreborn.bedwars.server.BWInstanceServer;
+import com.thenexusreborn.bedwars.server.BWVirtualServer;
+import com.thenexusreborn.bedwars.team.TeamInstance;
+import com.thenexusreborn.bedwars.team.TeamUpgrade;
+import com.thenexusreborn.gamemaps.MapManager;
 import com.thenexusreborn.nexuscore.NexusCore;
 import com.thenexusreborn.nexuscore.api.NexusSpigotPlugin;
 import com.thenexusreborn.nexuscore.api.events.NexusServerSetupEvent;
@@ -27,7 +36,6 @@ public class NexusBedWarsPlugin extends NexusSpigotPlugin implements Listener {
     private final Map<Integer, BWVirtualServer> servers = new HashMap<>();
     
     private final Map<Key, Game> games = new HashMap<>();
-    private final ListMap<Key, TeamInstance> teamInstances = new ArrayListMap<>();
     
     public static final IRegistry<BedwarsGenerator> GENERATORS = HashRegistry.newBuilder(BedwarsGenerator.class)
             .withKey(Keys.of("nbw:generators"))
@@ -36,7 +44,7 @@ public class NexusBedWarsPlugin extends NexusSpigotPlugin implements Listener {
             .appendKeyToObjectToParent()
             .build();
     
-    private final IRepository<UUID, BWPlayer> players = HashRepository.newBuilder(UUID.class, BWPlayer.class)
+    public static final IRepository<UUID, BWPlayer> players = HashRepository.newBuilder(UUID.class, BWPlayer.class)
             .withKey(Keys.of("nbw:players"))
             .withName("BedWars Players")
             .withLoader(BWPlayer::new)
@@ -46,6 +54,8 @@ public class NexusBedWarsPlugin extends NexusSpigotPlugin implements Listener {
     private NexusHubHook nexusHubHook;
     
     private int numberOfServers = 1;
+    
+    private MapManager<BedwarsMap> mapManager;
     
     @Override
     public void onLoad() {
@@ -66,12 +76,6 @@ public class NexusBedWarsPlugin extends NexusSpigotPlugin implements Listener {
         PluginCommand cmd = getCommand("bedwars");
         cmd.setExecutor(bedwarsCommand);
         cmd.setTabCompleter(bedwarsCommand);
-        
-//        getServer().getScheduler().runTaskTimer(this, () -> {
-//            for (Player player : getServer().getOnlinePlayers()) {
-//                Tool.checkTools(player);
-//            }
-//        }, 1L, 20L);
         
         getServer().getScheduler().runTaskTimer(this, () -> {
             for (BedwarsGenerator generator : GENERATORS) {
@@ -114,6 +118,20 @@ public class NexusBedWarsPlugin extends NexusSpigotPlugin implements Listener {
         if (nexusHub != null) {
             this.nexusHubHook = new NexusHubHook(this, nexusHub);
         }
+        
+        mapManager = new YamlMapManager(this);
+        mapManager.loadMaps();
+        
+        for (BedwarsMap bwMap : mapManager.getMaps()) {
+            Bukkit.getScheduler().runTaskAsynchronously(this, () -> {
+                getLogger().info("Downloading map " + bwMap.getName());
+                if (bwMap.download(this)) {
+                    getLogger().info("Downloaded map " + bwMap.getName());
+                } else {
+                    getLogger().warning("Failed to download map " + bwMap.getName());
+                }
+            });
+        }
     }
     
     public NexusHubHook getNexusHubHook() {
@@ -122,6 +140,10 @@ public class NexusBedWarsPlugin extends NexusSpigotPlugin implements Listener {
     
     public IRepository<UUID, BWPlayer> getPlayers() {
         return players;
+    }
+    
+    public MapManager<BedwarsMap> getMapManager() {
+        return mapManager;
     }
     
     @EventHandler
@@ -152,10 +174,6 @@ public class NexusBedWarsPlugin extends NexusSpigotPlugin implements Listener {
     
     public Map<Key, Game> getGames() {
         return games;
-    }
-    
-    public ListMap<Key, TeamInstance> getTeamInstances() {
-        return teamInstances;
     }
     
     public NexusCore getNexusCore() {

@@ -1,4 +1,4 @@
-package com.thenexusreborn.bedwars;
+package com.thenexusreborn.bedwars.generator;
 
 import com.stardevllc.starlib.function.ClassFilterPredicate;
 

@@ -1,5 +1,7 @@
-package com.thenexusreborn.bedwars;
+package com.thenexusreborn.bedwars.hook;
 
+import com.thenexusreborn.bedwars.NexusBedWarsPlugin;
+import com.thenexusreborn.bedwars.server.BWVirtualServer;
 import com.thenexusreborn.hub.NexusHub;
 import com.thenexusreborn.hub.api.ServerSelectEvent;
 import com.thenexusreborn.nexuscore.util.MsgType;

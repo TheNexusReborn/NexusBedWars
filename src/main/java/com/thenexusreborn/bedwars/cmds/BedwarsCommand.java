@@ -1,21 +1,32 @@
-package com.thenexusreborn.bedwars;
+package com.thenexusreborn.bedwars.cmds;
 
 import com.sk89q.worldedit.bukkit.WorldEditPlugin;
 import com.sk89q.worldedit.bukkit.selections.CuboidSelection;
 import com.sk89q.worldedit.bukkit.selections.Selection;
 import com.stardevllc.minecraft.*;
 import com.stardevllc.minecraft.command.*;
-import com.stardevllc.minecraft.registry.*;
+import com.stardevllc.minecraft.command.flags.type.PresenceFlag;
+import com.stardevllc.minecraft.registry.PluginKey;
 import com.stardevllc.minecraft.smaterial.ArmorSet;
 import com.stardevllc.minecraft.smaterial.SMaterial;
 import com.stardevllc.starlib.helper.StringHelper;
-import com.stardevllc.starlib.objects.key.*;
+import com.stardevllc.starlib.objects.key.Key;
+import com.stardevllc.starlib.objects.key.Keys;
 import com.stardevllc.starlib.registry.*;
 import com.thenexusreborn.api.NexusReborn;
 import com.thenexusreborn.api.player.NexusPlayer;
 import com.thenexusreborn.api.server.NexusServer;
-import com.thenexusreborn.bedwars.BWVirtualServer.AddToTeamResult;
-import com.thenexusreborn.bedwars.BWVirtualServer.RemoveFromTeamResult;
+import com.thenexusreborn.bedwars.BWPlayer;
+import com.thenexusreborn.bedwars.NexusBedWarsPlugin;
+import com.thenexusreborn.bedwars.arena.BedwarsArena;
+import com.thenexusreborn.bedwars.generator.*;
+import com.thenexusreborn.bedwars.item.Tool;
+import com.thenexusreborn.bedwars.map.BedwarsMap;
+import com.thenexusreborn.bedwars.server.BWVirtualServer;
+import com.thenexusreborn.bedwars.server.BWVirtualServer.AddToTeamResult;
+import com.thenexusreborn.bedwars.server.BWVirtualServer.RemoveFromTeamResult;
+import com.thenexusreborn.bedwars.team.*;
+import com.thenexusreborn.gamemaps.MapManager;
 import org.bukkit.*;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -53,10 +64,369 @@ public class BedwarsCommand extends StarCommand<NexusBedWarsPlugin> {
         super(plugin, "bedwars", "Main Bedwars Command", "nexusbedwars.command", "bw");
         this.invalidSubCommandMessage = getColors().colorLegacy("&cInvalid Subcommand");
         this.noPermissionMessage = getColors().colorLegacy("&cYou do not have permission to use that command");
+        this.subCommands.add(new MapCmd());
         this.subCommands.add(new PlayersCmd());
         this.subCommands.add(new TeamsCmd());
         this.subCommands.add(new ToolsCmd());
         this.subCommands.add(new GeneratorsCmd());
+    }
+    
+    private class MapCmd extends SubCommand<NexusBedWarsPlugin> {
+        public MapCmd() {
+            super(BedwarsCommand.this.plugin, BedwarsCommand.this, 0, "map", "Manages the maps", "nexusbedwars.command.map");
+            this.subCommands.add(new CreateCmd());
+            this.subCommands.add(new LoadCmd());
+            this.subCommands.add(new TeleportCmd());
+            this.subCommands.add(new AutofillCmd());
+            this.subCommands.add(new SaveCmd());
+            this.subCommands.add(new UnloadCmd());
+        }
+        
+        private class CreateCmd extends SubCommand<NexusBedWarsPlugin> {
+            
+            public static final PresenceFlag LOAD = new PresenceFlag("l", "Load");
+            public static final PresenceFlag TP = new PresenceFlag("tp", "Teleport");
+            
+            public CreateCmd() {
+                super(MapCmd.this.plugin, MapCmd.this, 1, "create", "Creates a map", "nexusbedwars.command.map.create");
+                
+                this.cmdFlags.addFlag(LOAD, TP);
+                
+                this.executor = context -> {
+                    CommandSender sender = context.sender();
+                    Player player = (Player) sender;
+                    NexusPlayer nexusPlayer = NexusReborn.getPlayerManager().getNexusPlayer(player.getUniqueId());
+                    if (nexusPlayer == null) {
+                        getColors().coloredLegacy(sender, "&cYou do not have any Nexus Data, either wait or relog.");
+                        return true;
+                    }
+                    
+                    NexusServer server = nexusPlayer.getServer();
+                    if (!(server instanceof BWVirtualServer bwServer)) {
+                        getColors().coloredLegacy(player, "&cYou are not on a Bed Wars Server");
+                        return true;
+                    }
+                    
+                    String[] args = context.args();
+                    
+                    if (!(args.length > 0)) {
+                        getColors().coloredLegacy(sender, "&cYou must provide a URL");
+                        return true;
+                    }
+                    
+                    String url = args[0];
+                    
+                    if (!(args.length > 1)) {
+                        getColors().coloredLegacy(sender, "&cYou must provide a name");
+                        return true;
+                    }
+                    
+                    StringBuilder sb = new StringBuilder();
+                    for (int i = 1; i < args.length; i++) {
+                        sb.append(args[i]).append(" ");
+                    }
+                    
+                    String name = sb.toString().trim();
+                    
+                    BedwarsMap existing = plugin.getMapManager().getMap(name);
+                    if (existing != null) {
+                        getColors().coloredLegacy(sender, "&cA map with that name already exists.");
+                        return true;
+                    }
+                    
+                    BedwarsMap map = new BedwarsMap(url, name);
+                    plugin.getMapManager().addMap(map);
+                    
+                    getColors().coloredLegacy(sender, "&eCreated the map &b" + MapManager.normalizeFunction.apply(name));
+                    getColors().coloredLegacy(sender, "  &eName: &b" + name);
+                    getColors().coloredLegacy(sender, "  &eURL: &b" + url);
+                    
+                    if (context.flags().isPresent(LOAD)) {
+                        BedwarsArena existingArena = bwServer.getArena();
+                        if (existingArena != null) {
+                            plugin.getMapManager().saveMap(existingArena.getMap());
+                            if (existingArena.deinit()) {
+                                getColors().coloredLegacy(sender, "&cFailed to save and unload the map " + existingArena.getMap().getName());
+                                return true;
+                            } else {
+                                getColors().coloredLegacy(sender, "&aSaved and unloaded the map &b" + existingArena.getMap().getName());
+                            }
+                            existingArena.getMap().removeFromServer(plugin);
+                            bwServer.setArena(null);
+                        }
+                        
+                        if (!map.download(plugin)) {
+                            getColors().coloredLegacy(sender, "&cFailed to download the map &e" + map.getName());
+                            return true;
+                        }
+                        
+                        if (!map.unzip(plugin)) {
+                            getColors().coloredLegacy(sender, "&cFailed to unzip the map &e" + map.getName());
+                            return true;
+                        }
+                        
+                        if (!map.copyFolder(plugin, bwServer.getName() + "-", false)) {
+                            getColors().coloredLegacy(sender, "&cFailed to copy the files of map &e" + map.getName());
+                            return true;
+                        }
+                        
+                        if (!map.load(plugin)) {
+                            getColors().coloredLegacy(sender, "&cFailed to load the map &e" + map.getName());
+                            return true;
+                        }
+                        
+                        BedwarsArena arena = bwServer.createArena(map, map.getName());
+                        if (!arena.init(map.getWorld())) {
+                            getColors().coloredLegacy(sender, "&cFailed to initialize the Arena");
+                            return true;
+                        }
+                        
+                        getColors().coloredLegacy(sender, "&aSuccessfully loaded the map &b" + map.getName());
+                        
+                        if (context.flags().isPresent(TP)) {
+                            String tpLoc;
+                            if (map.getSpawnCenter() != null) {
+                                player.teleport(new Location(map.getWorld(), map.getSpawnCenter().getBlockX() + 0.5, map.getSpawnCenter().getBlockY() + 0.5, map.getSpawnCenter().getBlockZ() + 0.5));
+                                tpLoc = "spawn center";
+                            } else {
+                                player.teleport(map.getWorld().getSpawnLocation());
+                                tpLoc = "default world spawn";
+                            }
+                            
+                            getColors().coloredLegacy(sender, "&eTeleported you to the &b" + tpLoc + " &eof the map &b" + map.getName());
+                        }
+                    }
+                    
+                    return true;
+                };
+            }
+        }
+        
+        private class LoadCmd extends SubCommand<NexusBedWarsPlugin> {
+            public static final PresenceFlag TP = new PresenceFlag("tp", "Teleport");
+            
+            public LoadCmd() {
+                super(MapCmd.this.plugin, MapCmd.this, 1, "load", "Loads a map", "nexusbedwars.command.map.load");
+                this.cmdFlags.addFlag(TP);
+                
+                this.executor = context -> {
+                    CommandSender sender = context.sender();
+                    Player player = (Player) sender;
+                    NexusPlayer nexusPlayer = NexusReborn.getPlayerManager().getNexusPlayer(player.getUniqueId());
+                    if (nexusPlayer == null) {
+                        getColors().coloredLegacy(sender, "&cYou do not have any Nexus Data, either wait or relog.");
+                        return true;
+                    }
+                    
+                    NexusServer server = nexusPlayer.getServer();
+                    if (!(server instanceof BWVirtualServer bwServer)) {
+                        getColors().coloredLegacy(player, "&cYou are not on a Bed Wars Server");
+                        return true;
+                    }
+                    
+                    String[] args = context.args();
+                    
+                    if (!(args.length > 0)) {
+                        getColors().coloredLegacy(sender, "&cYou must provide a name");
+                        return true;
+                    }
+                    
+                    StringBuilder sb = new StringBuilder();
+                    for (String arg : args) {
+                        sb.append(arg).append(" ");
+                    }
+                    
+                    String name = sb.toString().trim();
+                    
+                    BedwarsMap map = plugin.getMapManager().getMap(name);
+                    if (map == null) {
+                        getColors().coloredLegacy(sender, "&cInvalid map name: &e" + name);
+                        return true;
+                    }
+                    
+                    BedwarsArena existingArena = bwServer.getArena();
+                    if (existingArena != null) {
+                        plugin.getMapManager().saveMap(existingArena.getMap());
+                        if (existingArena.deinit()) {
+                            getColors().coloredLegacy(sender, "&cFailed to save and unload the map " + existingArena.getMap().getName());
+                            return true;
+                        } else {
+                            getColors().coloredLegacy(sender, "&aSaved and unloaded the map &b" + existingArena.getMap().getName());
+                        }
+                        existingArena.getMap().removeFromServer(plugin);
+                        bwServer.setArena(null);
+                    }
+                    
+                    if (!map.download(plugin)) {
+                        getColors().coloredLegacy(sender, "&cFailed to download the map &e" + map.getName());
+                        return true;
+                    }
+                    
+                    if (!map.unzip(plugin)) {
+                        getColors().coloredLegacy(sender, "&cFailed to unzip the map &e" + map.getName());
+                        return true;
+                    }
+                    
+                    if (!map.copyFolder(plugin, bwServer.getName() + "-", false)) {
+                        getColors().coloredLegacy(sender, "&cFailed to copy the files of map &e" + map.getName());
+                        return true;
+                    }
+                    
+                    if (!map.load(plugin)) {
+                        getColors().coloredLegacy(sender, "&cFailed to load the map &e" + map.getName());
+                        return true;
+                    }
+                    
+                    BedwarsArena arena = bwServer.createArena(map, map.getName());
+                    if (!arena.init(map.getWorld())) {
+                        getColors().coloredLegacy(sender, "&cFailed to initialize the Arena");
+                        return true;
+                    }
+                    
+                    getColors().coloredLegacy(sender, "&aSuccessfully loaded the map &b" + map.getName());
+                    
+                    if (context.flags().isPresent(TP)) {
+                        String tpLoc;
+                        if (map.getSpawnCenter() != null) {
+                            player.teleport(new Location(map.getWorld(), map.getSpawnCenter().getBlockX() + 0.5, map.getSpawnCenter().getBlockY() + 0.5, map.getSpawnCenter().getBlockZ() + 0.5));
+                            tpLoc = "spawn center";
+                        } else {
+                            player.teleport(map.getWorld().getSpawnLocation());
+                            tpLoc = "default world spawn";
+                        }
+                        
+                        getColors().coloredLegacy(sender, "&eTeleported you to the &b" + tpLoc + " &eof the map &b" + map.getName());
+                    }
+                    
+                    return true;
+                };
+            }
+        }
+        
+        private class TeleportCmd extends SubCommand<NexusBedWarsPlugin> {
+            public TeleportCmd() {
+                super(MapCmd.this.plugin, MapCmd.this, 1, "teleport", "Teleports you to a loaded map", "nexusbedwars.command.map.teleport", "tp");
+                
+                this.executor = context -> {
+                    CommandSender sender = context.sender();
+                    Player player = (Player) sender;
+                    NexusPlayer nexusPlayer = NexusReborn.getPlayerManager().getNexusPlayer(player.getUniqueId());
+                    if (nexusPlayer == null) {
+                        getColors().coloredLegacy(sender, "&cYou do not have any Nexus Data, either wait or relog.");
+                        return true;
+                    }
+                    
+                    NexusServer server = nexusPlayer.getServer();
+                    if (!(server instanceof BWVirtualServer bwServer)) {
+                        getColors().coloredLegacy(player, "&cYou are not on a Bed Wars Server");
+                        return true;
+                    }
+                    
+                    BedwarsArena arena = bwServer.getArena();
+                    
+                    if (arena == null) {
+                        getColors().coloredLegacy(player, "&cThere is no map loaded an initialized into an arena");
+                        return true;
+                    }
+                    
+                    BedwarsMap map = arena.getMap();
+                    
+                    String tpLoc;
+                    if (map.getSpawnCenter() != null) {
+                        player.teleport(new Location(map.getWorld(), map.getSpawnCenter().getBlockX() + 0.5, map.getSpawnCenter().getBlockY() + 0.5, map.getSpawnCenter().getBlockZ() + 0.5));
+                        tpLoc = "spawn center";
+                    } else {
+                        player.teleport(map.getWorld().getSpawnLocation());
+                        tpLoc = "default world spawn";
+                    }
+                    
+                    getColors().coloredLegacy(sender, "&eTeleported you to the &b" + tpLoc + " &eof the map &b" + map.getName());
+                    
+                    return true;
+                };
+            }
+        }
+        
+        private class AutofillCmd extends SubCommand<NexusBedWarsPlugin> {
+            public AutofillCmd() {
+                super(MapCmd.this.plugin, MapCmd.this, 1, "autofill", "Autofills the map settings with current server settings", "nexusbedwars.command.map.autofill");
+                this.executor = context -> {
+                    CommandSender sender = context.sender();
+                    Player player = (Player) sender;
+                    NexusPlayer nexusPlayer = NexusReborn.getPlayerManager().getNexusPlayer(player.getUniqueId());
+                    if (nexusPlayer == null) {
+                        getColors().coloredLegacy(sender, "&cYou do not have any Nexus Data, either wait or relog.");
+                        return true;
+                    }
+                    
+                    NexusServer server = nexusPlayer.getServer();
+                    if (!(server instanceof BWVirtualServer bwServer)) {
+                        getColors().coloredLegacy(player, "&cYou are not on a Bed Wars Server");
+                        return true;
+                    }
+                    
+                    BedwarsArena arena = bwServer.getArena();
+                    
+                    if (arena == null) {
+                        getColors().coloredLegacy(player, "&cThere is no map loaded an initialized into an arena");
+                        return true;
+                    }
+                    
+                    //TODO
+                    
+                    getColors().coloredLegacy(player, "&eTransfered all settings to the arena from the server.");
+                    return true;
+                };
+            }
+        }
+        
+        private class SaveCmd extends SubCommand<NexusBedWarsPlugin> {
+            public static final PresenceFlag UNLOAD = new PresenceFlag("ul", "Unload");
+            
+            public SaveCmd() {
+                super(MapCmd.this.plugin, MapCmd.this, 1, "save", "Save the map", "nexusbedwars.command.map.save");
+                this.cmdFlags.addFlag(UNLOAD);
+                
+                this.executor = context -> {
+                    CommandSender sender = context.sender();
+                    Player player = (Player) sender;
+                    NexusPlayer nexusPlayer = NexusReborn.getPlayerManager().getNexusPlayer(player.getUniqueId());
+                    if (nexusPlayer == null) {
+                        getColors().coloredLegacy(sender, "&cYou do not have any Nexus Data, either wait or relog.");
+                        return true;
+                    }
+                    
+                    NexusServer server = nexusPlayer.getServer();
+                    if (!(server instanceof BWVirtualServer bwServer)) {
+                        getColors().coloredLegacy(player, "&cYou are not on a Bed Wars Server");
+                        return true;
+                    }
+                    
+                    BedwarsArena arena = bwServer.getArena();
+                    
+                    if (arena == null) {
+                        getColors().coloredLegacy(player, "&cThere is no map loaded an initialized into an arena");
+                        return true;
+                    }
+                    
+                    BedwarsMap map = arena.getMap();
+                    
+                    plugin.getMapManager().saveMap(map);
+                    getColors().coloredLegacy(player, "&eSaved the map &e" + map.getName());
+                    return true;
+                };
+            }
+        }
+        
+        private class UnloadCmd extends SubCommand<NexusBedWarsPlugin> {
+            public static final PresenceFlag SAVE = new PresenceFlag("s", "save");
+            
+            public UnloadCmd() {
+                super(MapCmd.this.plugin, MapCmd.this, 1, "unload", "Unloads the map", "nexusbedwars.command.map.unload");
+                this.cmdFlags.addFlag(SAVE);
+                //unload - Based on loaded map
+            }
+        }
     }
     
     private class PlayersCmd extends SubCommand<NexusBedWarsPlugin> {
@@ -103,10 +473,12 @@ public class BedwarsCommand extends StarCommand<NexusBedWarsPlugin> {
                     }
                     target.setGameMode(GameMode.SURVIVAL);
                     
-                    TeamInstance teamInstance = bwServer.getTeamInstance(team);
+                    Location spawnpoint = null;
+                    TeamInstance teamInstance = bwPlayer.getTeamInstance();
                     
-                    if (teamInstance.getSpawnPoint() != null) {
-                        target.teleport(teamInstance.getSpawnPoint());
+                    TeamIsland island = teamInstance.getIsland();
+                    if (island != null && island.isInitialized()) {
+                        target.teleport(spawnpoint);
                     }
                     
                     boolean pickaxe = Tool.PICKAXES.get().hasTool(player);
@@ -833,6 +1205,18 @@ public class BedwarsCommand extends StarCommand<NexusBedWarsPlugin> {
                 this.subCommands.add(new TeamCmd(gameTeam));
             }
         }
+        
+        /* 
+            Context Priority (This is a player only command)
+                Override flag (-a <arenaName> for arena) (-s <serverName> for server) (Both will take in a name of the thing)
+                Current Arena (If within)
+                Current Server (If within)
+         */
+        
+        // /bedwars teams <color> island set spawn
+        // /bedwars teams <color> island set itemshop
+        // /bedwars teams <color> island set upgradeshop
+        // /bedwars teams <color> island set region
         
         private class TeamCmd extends SubCommand<NexusBedWarsPlugin> {
             public TeamCmd(GameTeam team) {

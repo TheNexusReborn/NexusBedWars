@@ -1,4 +1,4 @@
-package com.thenexusreborn.bedwars;
+package com.thenexusreborn.bedwars.team;
 
 import com.stardevllc.minecraft.smaterial.SMaterial;
 import com.stardevllc.starlib.objects.key.*;

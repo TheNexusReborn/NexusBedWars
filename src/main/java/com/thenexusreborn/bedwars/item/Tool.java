@@ -1,4 +1,4 @@
-package com.thenexusreborn.bedwars;
+package com.thenexusreborn.bedwars.item;
 
 import com.stardevllc.minecraft.itembuilder.ItemBuilder;
 import com.stardevllc.minecraft.smaterial.SMaterial;
@@ -8,6 +8,7 @@ import com.stardevllc.starlib.objects.key.*;
 import com.stardevllc.starlib.registry.*;
 import com.stardevllc.starlib.table.HashTable;
 import com.stardevllc.starlib.table.Table;
+import com.thenexusreborn.bedwars.game.GamePlayer;
 import org.bukkit.Bukkit;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;

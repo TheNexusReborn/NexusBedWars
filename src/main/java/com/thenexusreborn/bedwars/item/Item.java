@@ -1,7 +1,8 @@
-package com.thenexusreborn.bedwars;
+package com.thenexusreborn.bedwars.item;
 
 import com.stardevllc.starlib.objects.key.Key;
 import com.stardevllc.starlib.objects.key.Keyable;
+import com.thenexusreborn.bedwars.game.GamePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 

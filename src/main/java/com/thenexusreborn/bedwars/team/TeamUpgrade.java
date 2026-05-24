@@ -1,9 +1,10 @@
-package com.thenexusreborn.bedwars;
+package com.thenexusreborn.bedwars.team;
 
 import com.stardevllc.minecraft.Cuboid;
 import com.stardevllc.starlib.objects.builder.AbstractBuilder;
 import com.stardevllc.starlib.objects.key.*;
 import com.stardevllc.starlib.registry.*;
+import com.thenexusreborn.bedwars.generator.IslandForge;
 import org.bukkit.Bukkit;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;

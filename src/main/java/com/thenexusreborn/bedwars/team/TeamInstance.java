@@ -1,4 +1,4 @@
-package com.thenexusreborn.bedwars;
+package com.thenexusreborn.bedwars.team;
 
 import com.stardevllc.minecraft.Cuboid;
 import com.stardevllc.minecraft.smaterial.ArmorSlot;
@@ -7,6 +7,8 @@ import com.stardevllc.starchat.StarChat;
 import com.stardevllc.starchat.rooms.ChatRoom;
 import com.stardevllc.starchat.rooms.DefaultPermissions;
 import com.stardevllc.starlib.objects.key.Key;
+import com.thenexusreborn.bedwars.generator.IslandForge;
+import com.thenexusreborn.bedwars.server.BWVirtualServer;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -21,6 +23,7 @@ public class TeamInstance {
     private final BWVirtualServer server;
     private final GameTeam team;
     private final Set<UUID> players = new HashSet<>();
+    private TeamIsland island;
     private Location spawnPoint;
     private ChatRoom chatRoom;
     private boolean hasBed;
@@ -32,6 +35,14 @@ public class TeamInstance {
     public TeamInstance(BWVirtualServer server, GameTeam team) {
         this.server = server;
         this.team = team;
+    }
+    
+    public TeamIsland getIsland() {
+        return island;
+    }
+    
+    public void setIsland(TeamIsland island) {
+        this.island = island;
     }
     
     public ItemStack[] getArmor() {
@@ -50,10 +61,7 @@ public class TeamInstance {
         return server;
     }
     
-    public Location getSpawnPoint() {
-        return spawnPoint;
-    }
-    
+    @Deprecated(forRemoval = true)
     public void setSpawnPoint(Location spawnPoint) {
         this.spawnPoint = spawnPoint;
     }
@@ -128,6 +136,8 @@ public class TeamInstance {
             for (UUID uuid : this.players) {
                 this.chatRoom.removeMember(uuid);
             }
+            
+            StarChat.getInstance().getRoomRegistry().remove(this.chatRoom.getName());
         }
         
         this.chatRoom = chatRoom;
@@ -147,20 +157,14 @@ public class TeamInstance {
         this.hasBed = hasBed;
     }
     
+    @Deprecated(forRemoval = true)
     public void setRegion(Cuboid region) {
         this.region = region;
     }
     
+    @Deprecated(forRemoval = true)
     public void setForge(IslandForge forge) {
         this.forge = forge;
-    }
-    
-    public void setItemShopEntityId(UUID itemShopEntityId) {
-        this.itemShopEntityId = itemShopEntityId;
-    }
-    
-    public void setUpgradeShopEntityId(UUID upgradeShopEntityId) {
-        this.upgradeShopEntityId = upgradeShopEntityId;
     }
     
     public GameTeam getTeam() {
@@ -195,16 +199,9 @@ public class TeamInstance {
         return region;
     }
     
+    @Deprecated(forRemoval = true)
     public IslandForge getForge() {
         return forge;
-    }
-    
-    public UUID getItemShopEntityId() {
-        return itemShopEntityId;
-    }
-    
-    public UUID getUpgradeShopEntityId() {
-        return upgradeShopEntityId;
     }
     
     public void addPlayer(UUID uniqueId) {

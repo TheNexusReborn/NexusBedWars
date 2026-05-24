@@ -1,25 +1,55 @@
-package com.thenexusreborn.bedwars;
+package com.thenexusreborn.bedwars.server;
 
 import com.stardevllc.starchat.StarChat;
 import com.stardevllc.starchat.context.ChatContext;
 import com.stardevllc.starchat.rooms.ChatRoom;
 import com.stardevllc.starlib.objects.key.Key;
+import com.stardevllc.starlib.objects.key.Keys;
+import com.stardevllc.starlib.registry.HashRegistry;
+import com.stardevllc.starlib.registry.IRegistry;
 import com.thenexusreborn.api.player.NexusPlayer;
 import com.thenexusreborn.api.player.Rank;
 import com.thenexusreborn.api.server.InstanceServer;
 import com.thenexusreborn.api.server.VirtualServer;
+import com.thenexusreborn.bedwars.BWPlayer;
+import com.thenexusreborn.bedwars.NexusBedWarsPlugin;
+import com.thenexusreborn.bedwars.arena.BedwarsArena;
+import com.thenexusreborn.bedwars.game.Game;
+import com.thenexusreborn.bedwars.generator.BedwarsGenerator;
+import com.thenexusreborn.bedwars.map.BedwarsMap;
+import com.thenexusreborn.bedwars.team.*;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
 
 import java.util.*;
 
 public class BWVirtualServer extends VirtualServer {
+    /* TODO
+        We will have to decide how Nexus handles the network structure
+        This can be how it is currently in SG where they game lobby is in the actual server and players vote for things for that specific game
+        OR 
+        We can have it similar to Hypixel where each game has their own dedicated lobbies and then when the players play
+            The server is set to a specific map and they are teleported to a spot above the map for the pre-game and then teleported
+            into their spots when the game starts
+        For the experimental phase purposes, we will only be using a single map so this doesn't matter for now
+     */
+    
     
     private NexusBedWarsPlugin plugin;
     
     private Game game;
     private TeamMode teamMode = TeamMode.SOLO;
     
+    private World world;
+    
+    private BedwarsArena arena;
+    
+    @Deprecated
+    private final IRegistry<BedwarsGenerator> generators;
+    
+    @Deprecated
+    private final Map<Key, TeamIsland> islands = new HashMap<>();
+    @Deprecated
     private final Map<Key, TeamInstance> teams = new HashMap<>();
     
     private final Map<UUID, BWPlayer> bedwarsPlayers = new HashMap<>();
@@ -27,11 +57,34 @@ public class BWVirtualServer extends VirtualServer {
     public BWVirtualServer(NexusBedWarsPlugin plugin, InstanceServer parent, String name) {
         super(parent, name, "bedwars", 32);
         this.plugin = plugin;
+        generators = HashRegistry.newBuilder(BedwarsGenerator.class)
+                .appendKeyToObjectToParent()
+                .withParent(NexusBedWarsPlugin.GENERATORS)
+                .withKey(Keys.of(name))
+                .build();
+        this.arena = new BedwarsArena(plugin, this, null, "default");
     }
     
     public BWVirtualServer(NexusBedWarsPlugin plugin, String name) {
-        super(name, "bedwars", 32);
-        this.plugin = plugin;
+        this(plugin, null, name);
+    }
+    
+    public IRegistry<BedwarsGenerator> getGenerators() {
+        return generators;
+    }
+    
+    public BedwarsArena getArena() {
+        return arena;
+    }
+    
+    public void setArena(BedwarsArena arena) {
+        this.arena = arena;
+    }
+    
+    @Deprecated
+    public BedwarsArena createArena(BedwarsMap map, String name) {
+        this.arena = new BedwarsArena(plugin, this, map, map.getName() + " Arena");
+        return this.arena;
     }
     
     public TeamMode getTeamMode() {
@@ -53,6 +106,7 @@ public class BWVirtualServer extends VirtualServer {
         if (team != null) {
             TeamInstance teamInstance = this.teams.computeIfAbsent(team.getKey(), k -> new TeamInstance(this, team));
             teamInstance.addPlayer(bwPlayer.getUniqueId());
+            bwPlayer.setTeamInstance(teamInstance);
         }
         
         if (player.getRank().ordinal() <= Rank.MEDIA.ordinal()) {
@@ -83,6 +137,7 @@ public class BWVirtualServer extends VirtualServer {
         }
         
         TeamInstance teamInstance = getTeamInstance(team);
+        TeamIsland teamIsland = getTeamIsland(team);
         
         if (teamInstance.getPlayers().contains(player.getUniqueId())) {
             return new AddToTeamResult.AlreadyInTeam(player, bwPlayer, this, teamInstance);
@@ -130,7 +185,7 @@ public class BWVirtualServer extends VirtualServer {
         TeamInstance teamInstance = new TeamInstance(this, gameTeam);
         this.teams.put(gameTeam.getKey(), teamInstance);
         
-        ChatRoom teamRoom = new GameTeamChatroom(plugin, this, gameTeam);
+        ChatRoom teamRoom = new TeamChatroom(plugin, this, gameTeam);
         teamInstance.setChatRoom(teamRoom);
         StarChat.getInstance().getRoomRegistry().register(teamRoom.getName(), teamRoom);
         return teamInstance;
@@ -148,6 +203,16 @@ public class BWVirtualServer extends VirtualServer {
     
     public TeamInstance getTeamInstance(Player player) {
         return getTeamInstance(player.getUniqueId());
+    }
+    
+    public TeamIsland getTeamIsland(GameTeam gameTeam) {
+        if (this.islands.containsKey(gameTeam.getKey())) {
+            return this.islands.get(gameTeam.getKey());
+        }
+        
+        TeamIsland teamIsland = new TeamIsland(gameTeam);
+        this.islands.put(gameTeam.getKey(), teamIsland);
+        return teamIsland;
     }
     
     @Override

@@ -1,8 +1,9 @@
-package com.thenexusreborn.bedwars;
+package com.thenexusreborn.bedwars.generator;
 
 import com.stardevllc.minecraft.Position;
 import com.stardevllc.starlib.helper.RomanNumerals;
 import com.stardevllc.starlib.time.TimeUnit;
+import com.thenexusreborn.bedwars.item.Resource;
 import eu.decentsoftware.holograms.api.DHAPI;
 import eu.decentsoftware.holograms.api.holograms.Hologram;
 import org.bukkit.Location;

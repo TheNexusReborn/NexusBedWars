@@ -1,4 +1,4 @@
-package com.thenexusreborn.bedwars;
+package com.thenexusreborn.bedwars.generator;
 
 import com.stardevllc.minecraft.Position;
 import com.stardevllc.stargenerators.model.ItemEntry;

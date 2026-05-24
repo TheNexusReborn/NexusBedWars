@@ -1,10 +1,12 @@
-package com.thenexusreborn.bedwars;
+package com.thenexusreborn.bedwars.generator;
 
 import com.stardevllc.minecraft.Cuboid;
 import com.stardevllc.minecraft.Position;
 import com.stardevllc.stargenerators.model.listener.ItemPickupListener;
 import com.stardevllc.starlib.helper.StringHelper;
 import com.stardevllc.starlib.time.TimeUnit;
+import com.thenexusreborn.bedwars.team.GameTeam;
+import com.thenexusreborn.bedwars.item.Resource;
 import eu.decentsoftware.holograms.api.DHAPI;
 import eu.decentsoftware.holograms.api.holograms.Hologram;
 import org.bukkit.Location;
@@ -107,6 +109,14 @@ public class IslandForge extends BedwarsGenerator {
     
     public IslandForge(String name, Position position) {
         this(name, position, position, position);
+    }
+    
+    public IslandForge(Position position) {
+        this(null, position);
+    }
+    
+    public IslandForge(Position boundsMin, Position boundsMax, Position spawnPos) {
+        this(null, boundsMin, boundsMax, spawnPos);
     }
     
     public IslandForge(String name, Position boundsMin, Position boundsMax, Position spawnPos) {
