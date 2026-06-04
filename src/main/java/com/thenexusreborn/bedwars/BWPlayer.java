@@ -3,6 +3,8 @@ package com.thenexusreborn.bedwars;
 import com.stardevllc.minecraft.smaterial.ArmorSet;
 import com.thenexusreborn.api.NexusReborn;
 import com.thenexusreborn.api.player.NexusPlayer;
+import com.thenexusreborn.bedwars.game.GamePlayer;
+import com.thenexusreborn.bedwars.team.*;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
@@ -17,6 +19,7 @@ public class BWPlayer {
     
     private GamePlayer gamePlayer;
     private GameTeam team;
+    private TeamInstance teamInstance;
     private ArmorSet armor;
     
     private long joinTime;
@@ -29,6 +32,21 @@ public class BWPlayer {
     public BWPlayer(UUID uniqueId) {
         this.uniqueId = uniqueId;
         this.nexusPlayer = NexusReborn.getPlayerManager().getNexusPlayer(uniqueId);
+    }
+    
+    public TeamInstance getTeamInstance() {
+        return teamInstance;
+    }
+    
+    public void setTeamInstance(TeamInstance teamInstance) {
+        this.teamInstance = teamInstance;
+    }
+    
+    public TeamIsland getIsland() {
+        if (teamInstance == null) {
+            return null;
+        }
+        return teamInstance.getIsland();
     }
     
     public NexusPlayer getNexusPlayer() {
